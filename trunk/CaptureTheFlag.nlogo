@@ -1,3 +1,4 @@
+;yeahhhhhh uuuu si funciona
 ;;allowed breeds
 breed [ captains captain]
 breed [ bodyguards bodyguard]
