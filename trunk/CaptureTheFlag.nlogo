@@ -148,13 +148,27 @@ to move-captains
   let flag2 first [who] of flags with [ team = 2]
   
   ask captains with [team = 1] [
-    set heading towards flag flag2 ; random 360;
+    if (patch-ahead 1) != nobody
+    [ifelse not any? turtles-on patch-ahead 1 
+      [set heading towards flag flag2]
+      [ifelse any? ((turtles-on patch-ahead 1) with [who = flag2])
+        [ask turtle flag2 [set status "captured"]]
+        [set heading random 90] 
+      ]
+    ] 
     show-life
     validate-captain
   ]
   
     ask captains with [team = 2] [
-    set heading towards flag flag1 ; random 360;
+    if (patch-ahead 1) != nobody
+    [ifelse not any? turtles-on patch-ahead 1 
+      [set heading towards flag flag1]
+      [ifelse any? ((turtles-on patch-ahead 1) with [who = flag1])
+        [ask turtle flag1 [set status "captured"]]
+        [set heading random 90] 
+      ]
+    ] 
     show-life
     validate-captain
   ]
