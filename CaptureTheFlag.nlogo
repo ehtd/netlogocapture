@@ -1,4 +1,4 @@
-;yeahhhhhh uuuu si funciona
+
 ;;allowed breeds
 breed [ captains captain]
 breed [ bodyguards bodyguard]
@@ -6,11 +6,24 @@ breed [ flags flag]
 breed [ flagdefenders flagdefender]
 
 ;;characteristics
-turtles-own [ team ]
-flags-own [ status ];"captured", "dropped", "in-base"
-captains-own [life]
-bodyguards-own [life]
-flagdefenders-own [life]
+turtles-own [ 
+  team;;team number (1 or 2)*TODO:podriamos ponerle red y green para m‡s sencillo
+  ]
+flags-own [ 
+  status ;"captured", "dropped", "in-base"
+  ]
+captains-own [
+  life;;heath points
+  dmg;;damage
+  ]
+bodyguards-own [
+  life;;heath points
+  dmg;;damage
+  ]
+flagdefenders-own [
+  life;;heath points
+  dmg;;damage
+  ]
 
 ;;global variables
 globals [ 
@@ -37,9 +50,9 @@ to create
   (foreach [1 2]
     [
     create-flags 1 [ set team ?1 set status "in-base"]
-    create-captains 1 [ set team ?1 set life 100]
-    create-bodyguards 3 [ set team ?1  set life 100]
-    create-flagdefenders 5 [ set team ?1  set life 100]
+    create-captains 1 [ set team ?1 set life 100 set dmg 20]
+    create-bodyguards 3 [ set team ?1  set life 100 set dmg 20 set size 1.5]
+    create-flagdefenders 5 [ set team ?1  set life 100 set dmg 20]
     ]
     )
 end
@@ -153,7 +166,7 @@ to move-captains
       [set heading towards flag flag2]
       [ifelse any? ((turtles-on patch-ahead 1) with [who = flag2])
         [ask turtle flag2 [set status "captured"]]
-        [set heading random 90] 
+        [set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
       ]
     ] 
     show-life
@@ -166,7 +179,7 @@ to move-captains
       [set heading towards flag flag1]
       [ifelse any? ((turtles-on patch-ahead 1) with [who = flag1])
         [ask turtle flag1 [set status "captured"]]
-        [set heading random 90] 
+        [set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
       ]
     ] 
     show-life
@@ -212,16 +225,16 @@ to move-bodyguards
   ;if our captain has flag, attack aproaching enemies
   ;else be near captain in case he is attacked
   
-  ask bodyguards with [team = 1] [;;usar esto para atrapar al de la bandera
-    face one-of captains with [team = 1 ]
-    show-life
-    validate
-    ]
-    ask bodyguards with [team = 2] [
-    face one-of captains with [team = 2 ]
-    show-life
-    validate
-    ]
+;  ask bodyguards with [team = 1] [;;usar esto para atrapar al de la bandera
+;    face one-of captains with [team = 1 ]
+;    show-life
+;    validate
+;    ]
+;    ask bodyguards with [team = 2] [
+;    face one-of captains with [team = 2 ]
+;    show-life
+;    validate
+;    ]
 end
 
 to move-flagdefenders
@@ -229,22 +242,91 @@ to move-flagdefenders
  ;follow capturer until he is dead
  
   ask flagdefenders [
-    set heading random 360
+    ;;set heading random 360
+    show-life
+    
+    let myteam team
+    let mydmg dmg
+    
+    ;;search for enemy captain
+    ifelse (team = 1) [;;usar esto para atrapar al de la bandera
+    let captains2 one-of captains with [team = 2 ]
+    if captains2 != nobody [
+    face one-of captains with [team = 2 ]
     show-life
     validate
+    
+    ;;attack
+    if (patch-ahead 1) != nobody [;; validate patch exists
+      ask patch-ahead 1 [;;patch infront of turtle
+        if (count turtles-here != 0) [ ;;turtle count -> should only be one or zero at all time
+        ;;show [who] of turtles-here
+        
+        ;;if  turtle one-of [who] of turtles-here team = 
+        ask turtle one-of [who] of turtles-here [
+          show team
+          show myteam
+          if (team != myteam) [
+            set color pink;;TODO:blink   
+            set life life - mydmg
+            dead?;;check if turtles hp is empty and kill turtle if <= 0
+          ]
+         ]
+        ]
+      ]
     ]
+    ;;end attack
+    
+    ]
+    ]
+    [
+    let captains1 one-of captains with [team = 1 ]
+    if captains1 != nobody [
+    face one-of captains with [team = 1 ]
+    show-life
+    validate
+    ;;attack
+    if (patch-ahead 1) != nobody [;; validate patch exists
+      ask patch-ahead 1 [;;patch infront of turtle
+        if (count turtles-here != 0) [ ;;turtle count -> should only be one or zero at all time
+        ;;show [who] of turtles-here
+        
+        ;;if  turtle one-of [who] of turtles-here team = 
+        ask turtle one-of [who] of turtles-here [
+          show team
+          show myteam
+          if (team != myteam) [
+            set color pink;;TODO:blink   
+            set life life - mydmg
+            dead?;;check if turtles hp is empty and kill turtle if <= 0
+          ]
+         ]
+        ]
+      ]
+    ]
+    ;;end attack
+    
+    ]
+    ]
+  ]
 end
 
+to dead?
+   if (life <= 0) [
+    die 
+    
+   ]
+end
+
+
 to start
+  set-teamcolor;;restore colors
   move-captains
   move-bodyguards
   move-flagdefenders
 
 end
 
-to eat-grass
-
-end
 
 @#$#@#$#@
 GRAPHICS-WINDOW
