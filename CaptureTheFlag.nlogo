@@ -63,7 +63,7 @@ to default-shapes
     set-default-shape flags "flag" 
     set-default-shape captains "person";;qb"  
     set-default-shape bodyguards "person";"blocker"  
-    set-default-shape flagdefenders "person";"defense" 
+    set-default-shape flagdefenders "person";"defense" ; 
     ;;visual effects
     set-default-shape halos "circle 2"
     set-default-shape hp-bars "hp bar"
@@ -90,18 +90,18 @@ to create
       set is-eye-candy false
       set is-player true
       ]
-    create-bodyguards 3 [ 
+    create-bodyguards 8 [ 
       set team ?1  
       set life 100 
-      set dmg 20 
+      set dmg 10 
       set is-eye-candy false
       set is-player true
       set behavior "patrol"
       ]
-    create-flagdefenders 5 [ 
+    create-flagdefenders 8 [ 
       set team ?1  
       set life 100 
-      set dmg 2 
+      set dmg 10 
       set is-eye-candy false
       set is-player true
       set behavior "patrol" ]
@@ -224,34 +224,84 @@ to show-life
     [ set label "" ]
 end
 
+to update-captains
+
+  ask captains[
+    let myteam team
+    let myflag one-of flags with [team = myteam]  
+    let enemyflag one-of flags with [team != myteam] 
+    let front patch-ahead 1
+    
+    show-life
+    
+    set heading towards enemyflag
+    
+    if any? ((flags-on front) with [who = enemyflag])[
+          ask enemyflag [set status "captured"]
+      ]
+    validate2
+    
+    ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
+    ;show "enemy near"
+    ask bodyguards with [team = myteam ][
+     set behavior "defend"
+    ]
+  ][
+  ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
+      ask flagdefenders with [team = myteam ][
+     set behavior "patrol"
+    ]
+  ]
+
+  ]
+    
+end
+
+
 to move-captains
   let flag1 first [who] of flags with [ team = 1];considerar poner estas en globals
   let flag2 first [who] of flags with [ team = 2]
+  
+  
+;    ifelse any? turtles with [team != myteam] in-radius 5 [
+;    ;show "enemy near"
+;    ask flagdefenders with [team = myteam ][
+;     set behavior "defend"
+;    ]
+;  ][
+;  ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
+;      ask flagdefenders with [team = myteam ][
+;     set behavior "patrol"
+;    ]
+;  ]
+  
+
+  
   
   ask captains with [team = 1] [
     if (patch-ahead 1) != nobody
     [ifelse not any? turtles-on patch-ahead 1 
       [set heading towards flag flag2]
-      [ifelse any? ((turtles-on patch-ahead 1) with [who = flag2])
+      [if any? ((turtles-on patch-ahead 1) with [who = flag2])
         [ask turtle flag2 [set status "captured"]]
-        [set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
+        ;[set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
       ]
     ] 
     show-life
-    validate-captain
+    validate2;validate-captain
   ]
   
     ask captains with [team = 2] [
     if (patch-ahead 1) != nobody
     [ifelse not any? turtles-on patch-ahead 1 
       [set heading towards flag flag1]
-      [ifelse any? ((turtles-on patch-ahead 1) with [who = flag1])
+      [if any? ((turtles-on patch-ahead 1) with [who = flag1])
         [ask turtle flag1 [set status "captured"]]
-        [set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
+       ; [set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
       ]
     ] 
     show-life
-    validate-captain
+    validate2;validate-captain
   ]
     
     ;;if under attack change bodyguard behaviors
@@ -275,6 +325,7 @@ end
 to validate2
   let front patch-ahead 1
   let alternatives []
+  show-life
   ;show front
   ;let angle [ 45 -45 90 -90 ]
 
@@ -307,6 +358,7 @@ end
 
 to patrol-flag
   
+  
   ;;PATROL
   ask flagdefenders with [behavior = "patrol"][
     
@@ -324,13 +376,54 @@ to patrol-flag
       set heading random 360
       validate2
     ] 
+  ]
     
     ;;DEFEND
     ask flagdefenders with [behavior = "defend"][
-      show "enemy inside radius"
+      ;show "enemy inside radius"
+      let myteam team
+      let mydmg dmg
+      let myflag one-of flags with [team = myteam]  
+      
+      let enemies []
       ;;attack intruder
-    ] 
-  ]
+      
+       let front patch-ahead 1
+       let alternatives []
+       show-life
+
+       if front != nobody [
+         if (any? (turtles-on front) with [team != myteam and is-player = true])[
+           ;;if  turtle one-of [who] of turtles-here team = 
+           ask (turtles-on front) with [team != myteam and is-player = true] [
+             show team
+             show myteam
+             if (team != myteam) [
+               set color pink;;TODO:blink   
+               set life life - mydmg
+               update-hp-bar
+               dead?;;check if turtles hp is empty and kill turtle if <= 0
+             ]
+           ]
+         ]
+         ;    [ ]
+       ]
+      
+      ask myflag [
+      set enemies turtles with [team != myteam and is-player = true] in-radius 5 
+      ]
+      
+      ifelse any? enemies[
+      face one-of enemies
+      ][
+      face myflag
+      ]
+       validate2
+    ]
+end
+
+to attack-on
+
 end
 
 to update-flag-status
@@ -338,10 +431,15 @@ to update-flag-status
   ask flags[
   let myteam team
   
-  if any? turtles with [team != myteam] in-radius 5 [
-    show "enemy near"
+  ifelse any? turtles with [team != myteam] in-radius 5 [
+    ;show "enemy near"
     ask flagdefenders with [team = myteam ][
      set behavior "defend"
+    ]
+  ][
+  ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
+      ask flagdefenders with [team = myteam ][
+     set behavior "patrol"
     ]
   ]
   
@@ -380,7 +478,7 @@ to guard-captain
     let myteam team
     let mycaptain one-of captains with [team = myteam]  
     
-    ifelse ( distance mycaptain > 3) [
+    ifelse ( mycaptain != nobody and distance mycaptain > 3) [
          set color white;;blink out of range turtles    
          ;;move to a patch with less distance
          face mycaptain
@@ -391,13 +489,52 @@ to guard-captain
       set heading random 360
       validate2
     ] 
-    
+  ]
+  
     ;;DEFEND
     ask bodyguards with [behavior = "defend"][
-      show "enemy inside radius"
+      ;show "enemy inside radius"
+      let front patch-ahead 1
+      let myteam team
+      let mydmg dmg
+      let mycaptain one-of captains with [team = myteam] 
+
+      let enemies []
+      
       ;;attack intruder
-    ] 
-  ]
+      if front != nobody [
+         if (any? (turtles-on front) with [team != myteam and is-player = true])[
+           ;;if  turtle one-of [who] of turtles-here team = 
+           ask (turtles-on front) with [team != myteam and is-player = true] [
+             show team
+             show myteam
+             if (team != myteam) [
+               set color pink;;TODO:blink   
+               set life life - mydmg
+               update-hp-bar
+               dead?;;check if turtles hp is empty and kill turtle if <= 0
+             ]
+           ]
+         ]
+         ;    [ ]
+       ]
+      if mycaptain != nobody[
+        ask mycaptain [
+          set enemies turtles with [team != myteam and is-player = true] in-radius 3 
+        ]
+        
+        ifelse any? enemies[
+          face one-of enemies
+        ][
+        face mycaptain
+        ]
+        validate2
+      ] 
+    ]
+  
+  
+  
+  
 end
 
 
@@ -506,28 +643,12 @@ end
 ;face
 ;attack
 
-to attack[my-team other-team]
-;      if (patch-ahead 1) != nobody [;; validate patch exists
-;      ask patch-ahead 1 [;;patch infront of turtle
-;        if (count turtles-here != 0) [ ;;turtle count -> should only be one or zero at all time
-;        ;;show [who] of turtles-here
-;        
-;        ;;if  turtle one-of [who] of turtles-here team = 
-;        ask turtle one-of [who] of turtles-here [
-;          if (other-team != my-team) [
-;            set color pink;;TODO:blink   
-;            set life life mydmg; por que no sirve aqu’?
-;            dead?;;check if turtles hp is empty and kill turtle if <= 0
-;          ]
-;         ]
-;        ]
-;      ]
-;    ]
-end
+
 
 to dead?
    if (life <= 0) [
-    die ;;maybe use die-clean
+     die-clean
+    ;die ;;maybe use die-clean
    ]
 end
 
@@ -571,7 +692,8 @@ end
 to start
   set-teamcolor;;restore colors
   update-flag-status
-  move-captains
+  ;move-captains
+  update-captains
   guard-captain
   ;move-bodyguards
   patrol-flag
