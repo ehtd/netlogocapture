@@ -5,25 +5,49 @@ breed [ bodyguards bodyguard]
 breed [ flags flag]
 breed [ flagdefenders flagdefender]
 
+;;for visual effects
+breed [halos halo]
+breed [hp-bars hp-bar]
+
 ;;characteristics
 turtles-own [ 
   team;;team number (1 or 2)*TODO:podriamos ponerle red y green para m‡s sencillo
   ]
 flags-own [ 
+  is-eye-candy;;helper variable
+  is-player;;helper variable
   status ;"captured", "dropped", "in-base"
   ]
 captains-own [
+  is-eye-candy;;helper variable
+  is-player;;helper variable
   life;;heath points
   dmg;;damage
   ]
 bodyguards-own [
+  is-eye-candy;;helper variable
+  is-player;;helper variable
   life;;heath points
   dmg;;damage
+  behavior;;task assigned "patrol","attack"
   ]
 flagdefenders-own [
+  is-eye-candy;;helper variable
+  is-player;;helper variable
   life;;heath points
   dmg;;damage
+  behavior;;task assigned "patrol","attack"
   ]
+
+;;visual effects
+halos-own[
+ is-eye-candy;;helper variable 
+   is-player;;helper variable
+]
+hp-bars-own[
+ is-eye-candy;;helper variable 
+   is-player;;helper variable
+]
 
 ;;global variables
 globals [ 
@@ -32,12 +56,17 @@ globals [
    ]
 
 
+
+
 ;;setting default shapes
 to default-shapes
     set-default-shape flags "flag" 
-    set-default-shape captains "qb"  
-    set-default-shape bodyguards "blocker"  
-    set-default-shape flagdefenders "defense" 
+    set-default-shape captains "person";;qb"  
+    set-default-shape bodyguards "person";"blocker"  
+    set-default-shape flagdefenders "person";"defense" 
+    ;;visual effects
+    set-default-shape halos "circle 2"
+    set-default-shape hp-bars "hp bar"
 end
 
 to set-globals
@@ -49,10 +78,33 @@ end
 to create
   (foreach [1 2]
     [
-    create-flags 1 [ set team ?1 set status "in-base"]
-    create-captains 1 [ set team ?1 set life 100 set dmg 20]
-    create-bodyguards 3 [ set team ?1  set life 100 set dmg 20 set size 1.5]
-    create-flagdefenders 5 [ set team ?1  set life 100 set dmg 20]
+    create-flags 1 [ 
+      set team ?1 
+      set is-eye-candy false
+      set is-player false
+      set status "in-base"
+      ]
+    create-captains 1 [ 
+      set team ?1 
+      set life 100 
+      set is-eye-candy false
+      set is-player true
+      ]
+    create-bodyguards 3 [ 
+      set team ?1  
+      set life 100 
+      set dmg 20 
+      set is-eye-candy false
+      set is-player true
+      set behavior "patrol"
+      ]
+    create-flagdefenders 5 [ 
+      set team ?1  
+      set life 100 
+      set dmg 2 
+      set is-eye-candy false
+      set is-player true
+      set behavior "patrol" ]
     ]
     )
 end
@@ -131,7 +183,12 @@ end
 
 ;;set team colors 1-red 2-green
 to set-teamcolor
-  ask turtles [ifelse (team = 1) [set color red] [set color green]] 
+  ask turtles with [is-eye-candy = false] [
+    ifelse (team = 1) [
+      set color red] 
+    [
+      set color green]
+      ] 
 end
 
 to setup
@@ -139,9 +196,20 @@ to setup
   create
   set-globals
   default-shapes
+  
   set-teamcolor
+  set-halos
+  set-hp-bars
   reposition-team1
   reposition-team2  
+end
+
+to set-halos
+ask captains [make-halo]  
+end
+
+to set-hp-bars
+ask turtles with [is-player =  true] [make-hp-bar]  
 end
 
 ;;
@@ -186,16 +254,109 @@ to move-captains
     validate-captain
   ]
     
+    ;;if under attack change bodyguard behaviors
+    
 end
 
 ;;validates no turtle is on the way to prevent duplicated positions
 to validate 
   let val patch-ahead 1
+  let dir [ 90 -90]
   if val != nobody [
-    if not any? turtles-on val[
+    ifelse not any? turtles-on val[
      fd normal
+      ][
+     left (one-of dir) ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
       ]
   ]
+end
+;ask flagdefender 17 [ask patch-left-and-ahead 45 1 [ set pcolor white]]
+
+to validate2
+  let front patch-ahead 1
+  let alternatives []
+  ;show front
+  ;let angle [ 45 -45 90 -90 ]
+
+  if front != nobody [
+    ifelse not any? turtles-on front[
+     move-to front ][
+     ;;validate alternate movements
+     if (patch-left-and-ahead 45 1 != nobody) and (not any? turtles-on patch-left-and-ahead 45 1) [
+      set alternatives lput patch-left-and-ahead 45 1 alternatives
+     ]
+     if (patch-left-and-ahead -45 1 != nobody) and (not any? turtles-on patch-left-and-ahead -45 1) [
+      set alternatives lput patch-left-and-ahead -45 1 alternatives
+     ]
+      if (patch-left-and-ahead 90 1 != nobody) and (not any? turtles-on patch-left-and-ahead 90 1) [
+      set alternatives lput patch-left-and-ahead 90 1 alternatives
+     ]
+      if (patch-left-and-ahead -90 1 != nobody) and (not any? turtles-on patch-left-and-ahead -90 1) [
+      set alternatives lput patch-left-and-ahead -90 1 alternatives
+     ]
+      if not empty? alternatives [
+      move-to one-of alternatives
+      ]
+     ;left (one-of angle) ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
+     ;try to move
+     
+      ]
+  ]
+
+end
+
+to patrol-flag
+  
+  ;;PATROL
+  ask flagdefenders with [behavior = "patrol"][
+    
+    let myteam team
+    let myflag one-of flags with [team = myteam]  
+    
+    ifelse ( distance myflag > 5) [
+         set color blue;;blink out of range turtles    
+         ;;move to a patch with less distance
+         face myflag
+         validate2 
+    ]
+    [
+      ;;move random if inside safe radius
+      set heading random 360
+      validate2
+    ] 
+    
+    ;;DEFEND
+    ask flagdefenders with [behavior = "defend"][
+      show "enemy inside radius"
+      ;;attack intruder
+    ] 
+  ]
+end
+
+to update-flag-status
+  
+  ask flags[
+  let myteam team
+  
+  if any? turtles with [team != myteam] in-radius 5 [
+    show "enemy near"
+    ask flagdefenders with [team = myteam ][
+     set behavior "defend"
+    ]
+  ]
+  
+  if status = "in-base" [
+    
+  ]
+  
+  if status = "captured"[
+    
+  ]
+    
+  ]
+  
+  
+  
 end
 
 ;;validates no turtle is on the way to prevent duplicated positions
@@ -213,51 +374,84 @@ to guard-captain
   ;follow captain in radius 3 with random movement in this area (patrolling)
   ;if enemy enters in radius 3, attack
   
-    ask bodyguards with [team = 1] [;;usar esto para atrapar al de la bandera
-    face one-of captains with [team = 1 ]
-    show-life
-    validate
+  ;;PATROL
+  ask bodyguards with [behavior = "patrol"][
+    
+    let myteam team
+    let mycaptain one-of captains with [team = myteam]  
+    
+    ifelse ( distance mycaptain > 3) [
+         set color white;;blink out of range turtles    
+         ;;move to a patch with less distance
+         face mycaptain
+         validate2 
     ]
+    [
+      ;;move random if inside safe radius
+      set heading random 360
+      validate2
+    ] 
+    
+    ;;DEFEND
+    ask bodyguards with [behavior = "defend"][
+      show "enemy inside radius"
+      ;;attack intruder
+    ] 
+  ]
 end
 
 
 to move-bodyguards
   ;if our captain has flag, attack aproaching enemies
   ;else be near captain in case he is attacked
-  
-;  ask bodyguards with [team = 1] [;;usar esto para atrapar al de la bandera
-;    face one-of captains with [team = 1 ]
-;    show-life
-;    validate
-;    ]
-;    ask bodyguards with [team = 2] [
-;    face one-of captains with [team = 2 ]
-;    show-life
-;    validate
-;    ]
+      let captains2 one-of captains with [team = 2 ]
+    let captains1 one-of captains with [team = 1 ]
+    
+  ask bodyguards with [team = 1] [;;usar esto para atrapar al de la bandera
+    if captains1 != nobody[
+    ;face captains1
+    set heading random 360
+    show-life
+    validate2
+    ]
+    ]
+    ask bodyguards with [team = 2] [
+      if captains2 != nobody [
+    ;face captains2
+     set heading random 360
+    show-life
+    validate2
+      ]
+    ]
 end
 
 to move-flagdefenders
  ;attack players near our flag
  ;follow capturer until he is dead
  
-  ask flagdefenders [
+; let players [captains 
+  ask-concurrent flagdefenders [
     ;;set heading random 360
     show-life
     
     let myteam team
     let mydmg dmg
+    let captains2 one-of captains with [team = 2 ]
+    let captains1 one-of captains with [team = 1 ]
     
     ;;search for enemy captain
     ifelse (team = 1) [;;usar esto para atrapar al de la bandera
-    let captains2 one-of captains with [team = 2 ]
-    if captains2 != nobody [
-    face one-of captains with [team = 2 ]
-    show-life
-    validate
     
+      if captains2 != nobody [
+        face one-of captains with [team = 2 ]
+
+     
     ;;attack
+
     if (patch-ahead 1) != nobody [;; validate patch exists
+      ;;
+
+      ;;
       ask patch-ahead 1 [;;patch infront of turtle
         if (count turtles-here != 0) [ ;;turtle count -> should only be one or zero at all time
         ;;show [who] of turtles-here
@@ -276,28 +470,24 @@ to move-flagdefenders
       ]
     ]
     ;;end attack
-    
-    ]
+    validate2
+      ]
     ]
     [
-    let captains1 one-of captains with [team = 1 ]
     if captains1 != nobody [
-    face one-of captains with [team = 1 ]
-    show-life
-    validate
+    face captains1
+    
     ;;attack
-    if (patch-ahead 1) != nobody [;; validate patch exists
+          if (patch-ahead 1) != nobody [;; validate patch exists
       ask patch-ahead 1 [;;patch infront of turtle
         if (count turtles-here != 0) [ ;;turtle count -> should only be one or zero at all time
         ;;show [who] of turtles-here
         
         ;;if  turtle one-of [who] of turtles-here team = 
         ask turtle one-of [who] of turtles-here [
-          show team
-          show myteam
           if (team != myteam) [
             set color pink;;TODO:blink   
-            set life life - mydmg
+            set life life - mydmg; por que no sirve aqu’?
             dead?;;check if turtles hp is empty and kill turtle if <= 0
           ]
          ]
@@ -305,38 +495,139 @@ to move-flagdefenders
       ]
     ]
     ;;end attack
-    
+    validate2
     ]
     ]
   ]
 end
 
+
+;move facing captain
+;face
+;attack
+
+to attack[my-team other-team]
+;      if (patch-ahead 1) != nobody [;; validate patch exists
+;      ask patch-ahead 1 [;;patch infront of turtle
+;        if (count turtles-here != 0) [ ;;turtle count -> should only be one or zero at all time
+;        ;;show [who] of turtles-here
+;        
+;        ;;if  turtle one-of [who] of turtles-here team = 
+;        ask turtle one-of [who] of turtles-here [
+;          if (other-team != my-team) [
+;            set color pink;;TODO:blink   
+;            set life life mydmg; por que no sirve aqu’?
+;            dead?;;check if turtles hp is empty and kill turtle if <= 0
+;          ]
+;         ]
+;        ]
+;      ]
+;    ]
+end
+
 to dead?
    if (life <= 0) [
-    die 
-    
+    die ;;maybe use die-clean
    ]
 end
 
+;;
+;ask flagdefender 16 [set life 10]
+;ask flagdefender 16 [update-hp-bar]
+;;
+
+;;update hp-bar
+to update-hp-bar
+  ask self [
+    if life > 75 and life <= 100 [
+      ask hp-bars-here [
+        set shape "hp bar"
+      ]
+    ]
+    if life > 50 and life <= 75 [
+      ask hp-bars-here [
+        set shape "hp bar 3/4"
+      ]
+    ]
+    if life > 25 and life <= 50 [
+      ask hp-bars-here [
+        set shape "hp bar 1/2"
+      ]
+    ]
+    if life > 0 and life <= 25 [
+      ask hp-bars-here [
+        set shape "hp bar 1/4"
+      ]
+    ]  
+  ]
+  
+end
+
+;;removes also visual effects together with turtle
+to die-clean
+  ask self[ask turtles-here [die]]
+end
 
 to start
   set-teamcolor;;restore colors
+  update-flag-status
   move-captains
-  move-bodyguards
-  move-flagdefenders
-
+  guard-captain
+  ;move-bodyguards
+  patrol-flag
+  ;move-flagdefenders
+  tick
 end
 
 
+;;;;;;;;;;;;For visual effects
+
+to make-halo  ;; runner procedure
+  ;; when you use HATCH, the new turtle inherits the
+  ;; characteristics of the parent.  so the halo will
+  ;; be the same color as the turtle it encircles (unless
+  ;; you add code to change it
+  hatch-halos 1
+  [ set size 1.5
+    set is-eye-candy true
+    set is-player false
+    ;; Use an RGB color to make halo three fourths transparent
+    set color lput 125 extract-rgb color
+    ;; set thickness of halo to half a patch
+    __set-line-thickness 0.1
+    ;; We create an invisible directed link from the runner
+    ;; to the halo.  Using tie means that whenever the
+    ;; runner moves, the halo moves with it.
+    create-link-from myself
+    [ tie
+      hide-link ] ]
+end
+
+to make-hp-bar  ;; runner procedure
+  hatch-hp-bars 1
+  [ set size 1
+    set is-eye-candy true
+    set is-player false
+    ;; Use an RGB color to make halo three fourths transparent
+    set color lput 125 extract-rgb color
+    ;; set thickness of halo to half a patch
+    __set-line-thickness 0.15
+    ;; We create an invisible directed link from the runner
+    ;; to the halo.  Using tie means that whenever the
+    ;; runner moves, the halo moves with it.
+    create-link-from myself
+    [ tie
+      hide-link ] ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-649
-470
+715
+536
 16
 16
-13.0
+15.0
 1
 10
 1
@@ -497,6 +788,17 @@ Circle -16777216 true false 135 90 30
 Line -16777216 false 150 105 195 60
 Line -16777216 false 150 105 105 60
 
+captain
+false
+0
+Polygon -1184463 true false 150 90 149 83 101 83 49 151 69 192 71 199 107 157 112 195 81 284 95 298 143 299 150 256 158 298 204 298 219 283 188 191 193 155 223 193 249 145 199 84 149 84
+Circle -1184463 true false 105 0 90
+Circle -7500403 true true 110 5 80
+Polygon -7500403 true true 105 90 120 195 90 285 105 300 135 300 150 210 165 300 195 300 210 285 180 195 195 90
+Rectangle -7500403 true true 127 79 172 94
+Polygon -7500403 true true 105 90 60 150 75 180 135 105
+Polygon -7500403 true true 195 90 240 150 225 180 165 105
+
 car
 false
 0
@@ -515,8 +817,7 @@ Circle -7500403 true true 0 0 300
 circle 2
 false
 0
-Circle -7500403 true true 0 0 300
-Circle -16777216 true false 30 30 240
+Circle -7500403 false true 45 45 210
 
 cow
 false
@@ -611,6 +912,26 @@ Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
 
+hp bar
+false
+0
+Line -7500403 true 285 300 15 300
+
+hp bar 1/2
+false
+0
+Line -7500403 true 150 300 0 300
+
+hp bar 1/4
+false
+0
+Line -7500403 true 75 300 0 300
+
+hp bar 3/4
+false
+0
+Line -7500403 true 225 300 0 300
+
 leaf
 false
 0
@@ -630,8 +951,8 @@ Line -7500403 true 150 0 150 150
 nariz
 true
 0
-Circle -7500403 true true 73 73 152
-Polygon -7500403 true true 300 150 150 90 150 210 300 150
+Circle -7500403 true true 58 58 182
+Polygon -7500403 true true 300 150 150 60 150 240 300 150
 
 pentagon
 false
