@@ -72,6 +72,7 @@ end
 to set-globals
   set normal 1
   set carrying-flag 0.5
+  
 end
 
 ;;create players & items
@@ -231,14 +232,36 @@ to update-captains
     let myflag one-of flags with [team = myteam]  
     let enemyflag one-of flags with [team != myteam] 
     let front patch-ahead 1
+    let basex 0
+    let basey 15
+    ifelse team = 1
+    [set basey 15]
+    [set basey -15]
+    if (xcor = basex) and (ycor = basey) and (any? flags with [team != myteam and status = "captured"])
+    [stop]
+
     
     show-life
+   
+      if (any? flags with [team != myteam and status != "captured"])
+    [set heading towards enemyflag]
     
-    set heading towards enemyflag
+    if any? (flags-on front) with [team != myteam]
+     [
+       setxy ([xcor] of enemyflag ) ([ycor] of enemyflag) 
+     ask enemyflag [
+       set color yellow
+       set status "captured"
+     ]
+     create-link-to enemyflag [tie] 
+     ]
     
-    if any? ((flags-on front) with [who = enemyflag])[
-          ask enemyflag [set status "captured"]
-      ]
+ 
+      
+   ; if (any? enemyflag with [status = "captured"]) [ 
+    ;  set heading towards myflag
+    ;]
+    
     validate2
     
     ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
@@ -258,68 +281,68 @@ to update-captains
 end
 
 
-to move-captains
-  let flag1 first [who] of flags with [ team = 1];considerar poner estas en globals
-  let flag2 first [who] of flags with [ team = 2]
-  
-  
-;    ifelse any? turtles with [team != myteam] in-radius 5 [
-;    ;show "enemy near"
-;    ask flagdefenders with [team = myteam ][
-;     set behavior "defend"
-;    ]
-;  ][
-;  ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
-;      ask flagdefenders with [team = myteam ][
-;     set behavior "patrol"
-;    ]
+;to move-captains
+;  let flag1 first [who] of flags with [ team = 1];considerar poner estas en globals
+;  let flag2 first [who] of flags with [ team = 2]
+;  
+;  
+;;    ifelse any? turtles with [team != myteam] in-radius 5 [
+;;    ;show "enemy near"
+;;    ask flagdefenders with [team = myteam ][
+;;     set behavior "defend"
+;;    ]
+;;  ][
+;;  ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
+;;      ask flagdefenders with [team = myteam ][
+;;     set behavior "patrol"
+;;    ]
+;;  ]
+;  
+;
+;  
+;  
+;  ask captains with [team = 1] [
+;    if (patch-ahead 1) != nobody
+;    [ifelse not any? turtles-on patch-ahead 1 
+;      [set heading towards flag flag2]
+;      [if any? ((turtles-on patch-ahead 1) with [who = flag2])
+;        [ask turtle flag2 [set status "captured"]]
+;        ;[set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
+;      ]
+;    ] 
+;    show-life
+;    validate2;validate-captain
 ;  ]
-  
-
-  
-  
-  ask captains with [team = 1] [
-    if (patch-ahead 1) != nobody
-    [ifelse not any? turtles-on patch-ahead 1 
-      [set heading towards flag flag2]
-      [if any? ((turtles-on patch-ahead 1) with [who = flag2])
-        [ask turtle flag2 [set status "captured"]]
-        ;[set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
-      ]
-    ] 
-    show-life
-    validate2;validate-captain
-  ]
-  
-    ask captains with [team = 2] [
-    if (patch-ahead 1) != nobody
-    [ifelse not any? turtles-on patch-ahead 1 
-      [set heading towards flag flag1]
-      [if any? ((turtles-on patch-ahead 1) with [who = flag1])
-        [ask turtle flag1 [set status "captured"]]
-       ; [set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
-      ]
-    ] 
-    show-life
-    validate2;validate-captain
-  ]
-    
-    ;;if under attack change bodyguard behaviors
-    
-end
+;  
+;    ask captains with [team = 2] [
+;    if (patch-ahead 1) != nobody
+;    [ifelse not any? turtles-on patch-ahead 1 
+;      [set heading towards flag flag1]
+;      [if any? ((turtles-on patch-ahead 1) with [who = flag1])
+;        [ask turtle flag1 [set status "captured"]]
+;       ; [set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
+;      ]
+;    ] 
+;    show-life
+;    validate2;validate-captain
+;  ]
+;    
+;    ;;if under attack change bodyguard behaviors
+;    
+;end
 
 ;;validates no turtle is on the way to prevent duplicated positions
-to validate 
-  let val patch-ahead 1
-  let dir [ 90 -90]
-  if val != nobody [
-    ifelse not any? turtles-on val[
-     fd normal
-      ][
-     left (one-of dir) ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
-      ]
-  ]
-end
+;to validate 
+;  let val patch-ahead 1
+;  let dir [ 90 -90]
+;  if val != nobody [
+;    ifelse not any? turtles-on val[
+;     fd normal
+;      ][
+;     left (one-of dir) ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
+;      ]
+;  ]
+;end
 ;ask flagdefender 17 [ask patch-left-and-ahead 45 1 [ set pcolor white]]
 
 to validate2
@@ -448,7 +471,22 @@ to update-flag-status
   ]
   
   if status = "captured"[
-    
+   ; setxy posxy (one-of captains with [team != myteam])
+   set color orange
+   ask one-of captains with [team != myteam] [
+    let basex 0
+    let basey 15
+    ifelse team = 1
+    [set basey 15]
+    [set basey -15]
+    ifelse (xcor = basex) and (ycor = basey)
+    [write "Team " 
+     write team
+     write " WINS"
+     repeat 3 [ beep ]
+     ]
+    [set heading towardsxy basex basey]
+      ]
   ]
     
   ]
@@ -456,6 +494,13 @@ to update-flag-status
   
   
 end
+
+;to-report posxy [agent]
+;  ask agent [
+;    [report xcor
+;    report ycor]
+;  ]
+;end
 
 ;;validates no turtle is on the way to prevent duplicated positions
 to validate-captain 
@@ -699,6 +744,7 @@ to start
   patrol-flag
   ;move-flagdefenders
   tick
+
 end
 
 
