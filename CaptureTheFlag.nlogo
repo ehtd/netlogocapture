@@ -469,6 +469,7 @@ to update-flag-status
   if status = "captured"[
    ; setxy posxy (one-of captains with [team != myteam])
    set color orange
+   if one-of captains with [team != myteam] != nobody [
    ask one-of captains with [team != myteam] [
     let basex 0
     let basey 15
@@ -484,6 +485,7 @@ to update-flag-status
      ]
     [set heading towardsxy basex basey]
       ]
+   ]
   ]
     
   ]
@@ -728,7 +730,12 @@ end
 
 ;;removes also visual effects together with turtle
 to die-clean
-  ask self[ask turtles-here [die]]
+  ask self[
+    ask turtles-here with [is-eye-candy = true ] [
+      die
+      ]
+    die
+    ]
 end
 
 to start
