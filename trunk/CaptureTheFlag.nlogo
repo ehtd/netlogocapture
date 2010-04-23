@@ -53,6 +53,7 @@ hp-bars-own[
 globals [ 
   normal 
   carrying-flag
+  end-game
    ]
 
 
@@ -72,6 +73,7 @@ end
 to set-globals
   set normal 1
   set carrying-flag 0.5
+  set end-game false
   
 end
 
@@ -256,12 +258,6 @@ to update-captains
      create-link-to enemyflag [tie] 
      ]
     
- 
-      
-   ; if (any? enemyflag with [status = "captured"]) [ 
-    ;  set heading towards myflag
-    ;]
-    
     validate2
     
     ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
@@ -419,8 +415,8 @@ to patrol-flag
          if (any? (turtles-on front) with [team != myteam and is-player = true])[
            ;;if  turtle one-of [who] of turtles-here team = 
            ask (turtles-on front) with [team != myteam and is-player = true] [
-             show team
-             show myteam
+             ;show team
+             ;show myteam
              if (team != myteam) [
                set color pink;;TODO:blink   
                set life life - mydmg
@@ -484,6 +480,7 @@ to update-flag-status
      write team
      write " WINS"
      repeat 3 [ beep ]
+    set end-game true
      ]
     [set heading towardsxy basex basey]
       ]
@@ -551,8 +548,8 @@ to guard-captain
          if (any? (turtles-on front) with [team != myteam and is-player = true])[
            ;;if  turtle one-of [who] of turtles-here team = 
            ask (turtles-on front) with [team != myteam and is-player = true] [
-             show team
-             show myteam
+             ;show team
+             ;show myteam
              if (team != myteam) [
                set color pink;;TODO:blink   
                set life life - mydmg
@@ -640,8 +637,8 @@ to move-flagdefenders
         
         ;;if  turtle one-of [who] of turtles-here team = 
         ask turtle one-of [who] of turtles-here [
-          show team
-          show myteam
+          ;show team
+          ;show myteam
           if (team != myteam) [
             set color pink;;TODO:blink   
             set life life - mydmg
@@ -744,6 +741,7 @@ to start
   patrol-flag
   ;move-flagdefenders
   tick
+  if (end-game = true)[stop]
 
 end
 
