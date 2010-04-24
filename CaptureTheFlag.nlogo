@@ -463,7 +463,14 @@ to update-flag-status
   ]
   
   if status = "in-base" [
-    
+   let basx 0
+   let basy 15
+   ifelse team = 1
+   [set basy 15]
+   [set basy -15] 
+ 
+    set xcor basx
+    set ycor basy
   ]
   
   if status = "captured"[
@@ -471,12 +478,12 @@ to update-flag-status
    set color orange
    if one-of captains with [team != myteam] != nobody [
    ask one-of captains with [team != myteam] [
-    let basex 0
-    let basey 15
-    ifelse team = 1
-    [set basey 15]
-    [set basey -15]
-    ifelse (xcor = basex) and (ycor = basey)
+  let basex 0
+  let basey 15
+  ifelse team = 1
+   [set basey 15]
+   [set basey -15]   
+    ifelse (xcor = basex or xcor = basex + 1) and (ycor = basey or ycor = basey + 1)
     [write "Team " 
      write team
      write " WINS"
@@ -487,6 +494,15 @@ to update-flag-status
       ]
    ]
   ]
+    if one-of captains with [team = myteam] = nobody[
+      ;ask turtles  with [team =  myteam and is-player and life > 0] [
+        ask one-of flags with [team != myteam] [set  status "in-base"] 
+        ask max-one-of turtles  with [team =  myteam and is-player and life > 0] with-min [distance (one-of flags with [team != myteam])] [life]  
+        [set breed captains
+          make-halo
+          ]
+          
+  ]  
     
   ]
   
@@ -796,9 +812,9 @@ end
 GRAPHICS-WINDOW
 210
 10
-715
+745
 536
-16
+17
 16
 15.0
 1
@@ -810,8 +826,8 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
+-17
+17
 -16
 16
 0
