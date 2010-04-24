@@ -1,4 +1,4 @@
-
+;TODO:Ver como hacer videos
 ;;allowed breeds
 breed [ captains captain]
 breed [ bodyguards bodyguard]
@@ -17,18 +17,19 @@ flags-own [
   is-eye-candy;;helper variable
   is-player;;helper variable
   status ;"captured", "dropped", "in-base"
+  contracted-list;list of contracts
   ]
 captains-own [
   is-eye-candy;;helper variable
   is-player;;helper variable
   life;;heath points
-  dmg;;damage
+  dmg;;damage;;TODO: remover este valor si no se usa
   ]
 bodyguards-own [
   is-eye-candy;;helper variable
   is-player;;helper variable
   life;;heath points
-  dmg;;damage
+  dmg;;damage;;TODO: considerar hacer el da–o random dmg para que que sea m‡s variable, tal vez aumentar el da–o a 20
   behavior;;task assigned "patrol","attack"
   ]
 flagdefenders-own [
@@ -36,7 +37,8 @@ flagdefenders-own [
   is-player;;helper variable
   life;;heath points
   dmg;;damage
-  behavior;;task assigned "patrol","attack"
+  behavior;;task assigned "patrol","attack","contracted","disperse"
+  patch-to-defend;
   ]
 
 ;;visual effects
@@ -64,7 +66,7 @@ to default-shapes
     set-default-shape flags "flag" 
     set-default-shape captains "person"
     set-default-shape bodyguards "person"  
-    set-default-shape flagdefenders "person"
+    set-default-shape flagdefenders "person soldier"
     ;;visual effects
     set-default-shape halos "circle 2"
     set-default-shape hp-bars "hp bar"
@@ -85,6 +87,7 @@ to create
       set is-eye-candy false
       set is-player false
       set status "in-base"
+      set contracted-list[nobody nobody nobody nobody nobody nobody nobody]
       ]
     create-captains 1 [ 
       set team ?1 
@@ -100,13 +103,14 @@ to create
       set is-player true
       set behavior "patrol"
       ]
-    create-flagdefenders 8 [ 
+    create-flagdefenders 12 [ 
       set team ?1  
       set life 100 
       set dmg 10 
       set is-eye-candy false
       set is-player true
-      set behavior "patrol" ]
+      set behavior "patrol" 
+      set patch-to-defend nobody]
     ]
     )
 end
@@ -223,8 +227,9 @@ to show-life
     [ set label "" ]
 end
 
+;;TODO: en veces no captura la bandera r‡pido a la primera, se queda en espera
 to update-captains
-
+;;agregarle inteligencia para que no se lance adelante de todos
   ask captains[
     let myteam team
     let myflag one-of flags with [team = myteam]  
@@ -235,24 +240,40 @@ to update-captains
     ifelse team = 1
     [set basey 15]
     [set basey -15]
-    if (xcor = basex) and (ycor = basey) and (any? flags with [team != myteam and status = "captured"])
-    [stop]
+    ;if (xcor = basex) and (ycor = basey) and (any? flags with [team != myteam and status = "captured"])
+    ;[stop];;TODO: validar que se use esto
 
     
     show-life
    
+   ;;remove contract from flagdefenders to allow him enter
+   ask enemyflag [
+    ifelse status = "captured" and distance patch basex basey < 3[
+     ;;disperse flagdefenders
+     ask flagdefenders with[team = myteam and behavior = "contracted"][
+      set behavior "disperse" 
+     ] 
+    ][
+         ask flagdefenders with[team = myteam and behavior = "disperse"][
+      set behavior "patrol" 
+     ] 
+    ]
+     
+   ]
       if (any? flags with [team != myteam and status != "captured"])
     [set heading towards enemyflag]
     
-    if any? (flags-on front) with [team != myteam]
-     [
-       setxy ([xcor] of enemyflag ) ([ycor] of enemyflag) 
-     ask enemyflag [
-       set color yellow
-       set status "captured"
-     ]
-     create-link-to enemyflag [tie] 
-     ]
+    if front != nobody[
+      if any? (flags-on front) with [team != myteam];;Validar aqui por que en veces no captura bien la bandera
+      [
+        setxy ([xcor] of enemyflag ) ([ycor] of enemyflag) 
+        ask enemyflag [
+          set color yellow
+          set status "captured"
+        ]
+        create-link-to enemyflag [tie] 
+      ]
+    ]
     
     validate2
     
@@ -263,7 +284,7 @@ to update-captains
     ]
   ][
   ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
-      ask flagdefenders with [team = myteam ][
+      ask bodyguards with [team = myteam ][
      set behavior "patrol"
     ]
   ]
@@ -308,7 +329,8 @@ end
 
 to patrol-flag
   
-  
+
+
   ;;PATROL
   ask flagdefenders with [behavior = "patrol"][
     
@@ -327,6 +349,58 @@ to patrol-flag
       validate2
     ] 
   ]
+  
+    ;;DISPERSE
+  ask flagdefenders with [behavior = "disperse"][
+    let pos[ -90 90]
+    left one-of pos
+    validate2
+  ]
+  
+  
+  ;;CONTRACTED
+  ask flagdefenders with [behavior = "contracted" and patch-to-defend != nobody][
+    let myteam team
+    let mydmg dmg
+    let myflag one-of flags with [team = myteam] 
+    let mycaptain one-of captains with [team = myteam]
+    
+    let enemies []
+    let front patch-ahead 1
+    
+    if distance patch-to-defend > 0[
+    set heading towards patch-to-defend
+    validate2
+    ]
+    
+    ask myflag [
+      set enemies turtles with [team != myteam and is-player = true] in-radius 2 
+    ]
+    
+    ifelse any? enemies[
+      face one-of enemies
+    ][
+    face myflag
+    ]
+    
+    ;;attack enemy captain
+;    if one-of captains with [team != myteam] != nobody[
+;      face one-of captains with [team != myteam]
+;    ]
+      
+    if front != nobody [
+      if (any? (turtles-on front) with [team != myteam and is-player = true])[
+        ask (turtles-on front) with [team != myteam and is-player = true] [
+          set color pink;;TODO:blink   
+          set life life - mydmg
+          update-hp-bar
+          dead?;;check if turtles hp is empty and kill turtle if <= 0
+          
+        ]
+      ]
+    ]
+    
+  ]
     
     ;;DEFEND
     ask flagdefenders with [behavior = "defend"][
@@ -339,7 +413,7 @@ to patrol-flag
       ;;attack intruder
       
        let front patch-ahead 1
-       let alternatives []
+       ;let alternatives []
        show-life
 
        if front != nobody [
@@ -348,12 +422,12 @@ to patrol-flag
            ask (turtles-on front) with [team != myteam and is-player = true] [
              ;show team
              ;show myteam
-             if (team != myteam) [
+             ;if (team != myteam) [
                set color pink;;TODO:blink   
                set life life - mydmg
                update-hp-bar
                dead?;;check if turtles hp is empty and kill turtle if <= 0
-             ]
+             ;]
            ]
          ]
          ;    [ ]
@@ -377,18 +451,104 @@ to update-flag-status
   
   ask flags[
   let myteam team
-  
-  ifelse any? turtles with [team != myteam] in-radius 5 [
-    ;show "enemy near"
-    ask flagdefenders with [team = myteam ][
-     set behavior "defend"
-    ]
-  ][
-  ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
+  let x xcor
+  let y ycor
+ 
+    if myteam = 1[
+       if defense-strat-team1 = "patrol" [
+      ifelse any? turtles with [team != myteam] in-radius 5 [
+        ;show "enemy near"
+        ask flagdefenders with [team = myteam ][
+          set behavior "defend"
+        ]
+      ][
+      ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
       ask flagdefenders with [team = myteam ][
-     set behavior "patrol"
+        set behavior "patrol"
+      ]
+      ]
     ]
-  ]
+       
+      if defense-strat-team1 = "box" and status = "in-base" [ 
+        ;;CNET algorithm
+        
+        ;;patches list       
+;        |p7|X|p6|
+;        |p5|fl|p4|
+;        |p2|p1|p3|
+        let p1 patch x (y - 1)
+        let p2 patch (xcor - 1) (ycor - 1)
+        let p3 patch (xcor + 1) (ycor - 1)
+        let p4 patch (xcor + 1) ycor
+        let p5 patch (xcor - 1) ycor
+        let p6 patch (xcor + 1) (ycor + 1)
+        let p7 patch (xcor - 1) (ycor + 1)
+       ; let p8 patch (xcor + 1) (ycor + 1)
+       ;;TODO: tal vez colocarlos en otro orden para que no se estorben y luego si llenar por prioridad
+       let positions (list p1 p2 p3 p4 p5 p6 p7); sort neighbors; p2 p3 p4 p5 p6 p7 p8 ]
+       ;;problem: flag needs to be covered from enemy captain
+;       show positions
+;       show contracted-list
+       ;;validate flag has jobs
+;       ;update-contracted-list
+       let i 0
+       let p nobody
+       foreach contracted-list[
+         
+         set p item i positions
+        if ?1 = nobody[
+          let to-be-contracted one-of flagdefenders with [team =  myteam and behavior != "contracted" and behavior !="disperse"] with-min [distance p]
+          
+          if to-be-contracted != nobody[
+            ask to-be-contracted
+            [
+              set patch-to-defend p
+              set behavior "contracted"
+              set color cyan
+              ;;agregar fd a contracted-list
+            ]
+            set contracted-list (replace-item i contracted-list to-be-contracted)
+            
+          ] 
+        ] 
+        set i i + 1
+       ]
+       
+       ;;anouncement
+       foreach positions[
+
+       ]
+       
+             ifelse any? turtles with [team != myteam] in-radius 5 [
+        ;show "enemy near"
+        ask flagdefenders with [team =  myteam and behavior != "contracted" and patch-to-defend = nobody][
+          set behavior "defend"
+        ]
+      ][
+      ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
+      ask flagdefenders with [team =  myteam and behavior != "contracted" and patch-to-defend = nobody][
+        set behavior "patrol"
+      ]
+      
+        
+    ]
+    ]
+    ]
+    
+        if myteam = 2[
+      ifelse any? turtles with [team != myteam] in-radius 5 [
+        ;show "enemy near"
+        ask flagdefenders with [team = myteam ][
+          set behavior "defend"
+        ]
+      ][
+      ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
+      ask flagdefenders with [team = myteam ][
+        set behavior "patrol"
+      ]
+      ]
+    ]
+  
   
   if status = "in-base" [
    let basx 0
@@ -490,12 +650,12 @@ to guard-captain
            ask (turtles-on front) with [team != myteam and is-player = true] [
              ;show team
              ;show myteam
-             if (team != myteam) [
+             ;if (team != myteam) [
                set color pink;;TODO:blink   
                set life life - mydmg
                update-hp-bar
                dead?;;check if turtles hp is empty and kill turtle if <= 0
-             ]
+            ; ]
            ]
          ]
          ;    [ ]
@@ -522,6 +682,7 @@ to dead?
    ]
 end
 
+;;TODO: Crear mas barras para ver mejor la vida
 ;;update hp-bar
 to update-hp-bar
   ask self [
@@ -552,11 +713,27 @@ end
 ;;removes also visual effects together with turtle and kill turtle
 to die-clean
   ask self[
+    if is-flagdefender? self and behavior = "contracted" [
+      ;;buscar en lista y cambiar a nobody
+      let i 0
+      let p nobody
+      ask flags[
+      foreach contracted-list[
+        
+        if ?1 = patch-here[
+          set contracted-list (replace-item i contracted-list nobody)
+        ] 
+      ] 
+      ]
+      set i i + 1
+    ]
+    
     ask turtles-here with [is-eye-candy = true ] [
       die
-      ]
-    die
     ]
+    
+    die
+  ]
 end
 
 to start
@@ -634,10 +811,10 @@ GRAPHICS-WINDOW
 ticks
 
 BUTTON
-41
-35
-107
-68
+21
+38
+87
+71
 Setup
 setup
 NIL
@@ -650,10 +827,10 @@ NIL
 NIL
 
 BUTTON
-44
-107
-107
-140
+97
+38
+160
+71
 Start
 start
 T
@@ -666,15 +843,57 @@ NIL
 NIL
 
 SWITCH
-46
-189
-166
-222
+29
+85
+149
+118
 show-life?
 show-life?
 1
 1
 -1000
+
+MONITOR
+17
+341
+155
+386
+Red turtles (Team 1)
+count turtles with [team = 1 and is-player = true]
+17
+1
+11
+
+MONITOR
+20
+395
+168
+440
+Green turtles(Team 2)
+count turtles with [team = 2 and is-player = true]
+17
+1
+11
+
+TEXTBOX
+32
+142
+182
+160
+Team #1 Controls
+14
+0.0
+1
+
+CHOOSER
+25
+166
+179
+211
+defense-strat-team1
+defense-strat-team1
+"patrol" "box"
+1
 
 @#$#@#$#@
 WHAT IS IT?
@@ -955,25 +1174,45 @@ Rectangle -7500403 true true 127 79 172 94
 Polygon -7500403 true true 195 90 240 150 225 180 165 105
 Polygon -7500403 true true 105 90 60 150 75 180 135 105
 
+person service
+false
+0
+Polygon -7500403 true true 180 195 120 195 90 285 105 300 135 300 150 225 165 300 195 300 210 285
+Polygon -1 true false 120 90 105 90 60 195 90 210 120 150 120 195 180 195 180 150 210 210 240 195 195 90 180 90 165 105 150 165 135 105 120 90
+Polygon -1 true false 123 90 149 141 177 90
+Rectangle -7500403 true true 123 76 176 92
+Circle -7500403 true true 110 5 80
+Line -13345367 false 121 90 194 90
+Line -16777216 false 148 143 150 196
+Rectangle -16777216 true false 116 186 182 198
+Circle -1 true false 152 143 9
+Circle -1 true false 152 166 9
+Rectangle -16777216 true false 179 164 183 186
+Polygon -2674135 true false 180 90 195 90 183 160 180 195 150 195 150 135 180 90
+Polygon -2674135 true false 120 90 105 90 114 161 120 195 150 195 150 135 120 90
+Polygon -2674135 true false 155 91 128 77 128 101
+Rectangle -16777216 true false 118 129 141 140
+Polygon -2674135 true false 145 91 172 77 172 101
+
 person soldier
 false
 0
 Rectangle -7500403 true true 127 79 172 94
-Polygon -10899396 true false 105 90 60 195 90 210 135 105
-Polygon -10899396 true false 195 90 240 195 210 210 165 105
+Polygon -1 true false 105 90 60 195 90 210 135 105
+Polygon -1 true false 195 90 240 195 210 210 165 105
 Circle -7500403 true true 110 5 80
-Polygon -10899396 true false 105 90 120 195 90 285 105 300 135 300 150 225 165 300 195 300 210 285 180 195 195 90
-Polygon -6459832 true false 120 90 105 90 180 195 180 165
-Line -6459832 false 109 105 139 105
-Line -6459832 false 122 125 151 117
-Line -6459832 false 137 143 159 134
-Line -6459832 false 158 179 181 158
-Line -6459832 false 146 160 169 146
-Rectangle -6459832 true false 120 193 180 201
-Polygon -6459832 true false 122 4 107 16 102 39 105 53 148 34 192 27 189 17 172 2 145 0
-Polygon -16777216 true false 183 90 240 15 247 22 193 90
-Rectangle -6459832 true false 114 187 128 208
-Rectangle -6459832 true false 177 187 191 208
+Polygon -7500403 true true 105 90 120 195 90 285 105 300 135 300 150 225 165 300 195 300 210 285 180 195 195 90
+Polygon -1 true false 120 90 105 90 180 195 180 165
+Line -1 false 109 105 139 105
+Line -1 false 122 125 151 117
+Line -1 false 137 143 159 134
+Line -1 false 158 179 181 158
+Line -1 false 146 160 169 146
+Rectangle -1 true false 120 193 180 201
+Polygon -1 true false 122 4 107 16 102 39 105 53 148 34 192 27 189 17 172 2 145 0
+Polygon -1 true false 183 90 240 15 247 22 193 90
+Rectangle -1 true false 114 187 128 208
+Rectangle -1 true false 177 187 191 208
 
 plant
 false
