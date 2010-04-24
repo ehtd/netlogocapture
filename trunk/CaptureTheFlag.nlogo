@@ -51,9 +51,9 @@ hp-bars-own[
 
 ;;global variables
 globals [ 
-  normal 
-  carrying-flag
-  end-game
+  normal;;TODO:considerar eliminar
+  carrying-flag;;TODO:considerar eliminar
+  end-game;;criteria for stopping the simulation
    ]
 
 
@@ -62,9 +62,9 @@ globals [
 ;;setting default shapes
 to default-shapes
     set-default-shape flags "flag" 
-    set-default-shape captains "person";;qb"  
-    set-default-shape bodyguards "person";"blocker"  
-    set-default-shape flagdefenders "person";"defense" ; 
+    set-default-shape captains "person"
+    set-default-shape bodyguards "person"  
+    set-default-shape flagdefenders "person"
     ;;visual effects
     set-default-shape halos "circle 2"
     set-default-shape hp-bars "hp bar"
@@ -74,7 +74,6 @@ to set-globals
   set normal 1
   set carrying-flag 0.5
   set end-game false
-  
 end
 
 ;;create players & items
@@ -112,15 +111,14 @@ to create
     )
 end
 
-;to-report flagx [num]
-;  ask flags with [team = 1][ report xcor]
-;end
-
-
-
 ;;align team players to own flag
 to reposition-team1
-  ask flags with [team = 1] [setxy 0 15]
+  
+  ask flags with [team = 1] [
+    setxy 0 15
+    set pcolor red + 3
+
+    ]
   let flag-id first [who] of flags with [team = 1]
   
   ask captains with [team = 1 ][
@@ -149,12 +147,14 @@ to reposition-team1
        ]
   ]
   
-  ;ask bodyguards with [team = 1 ] [setxy ([xcor] of flag flag-id ) ([ycor] of flag flag-id) + 1]
 end
 
 ;;align team players to own flag 
 to reposition-team2
-    ask flags with [team = 2] [setxy 0 -15]
+    ask flags with [team = 2] [
+      setxy 0 -15
+      set pcolor green + 3
+      ]
     let flag-id first [who] of flags with [team = 2]
     ask captains with [team = 2 ] [
       setxy ([xcor] of flag flag-id ) ([ycor] of flag flag-id) + 1 
@@ -188,10 +188,12 @@ end
 to set-teamcolor
   ask turtles with [is-eye-candy = false] [
     ifelse (team = 1) [
-      set color red] 
-    [
-      set color green]
+      set color red
       ] 
+    [
+      set color green
+      ]
+    ] 
 end
 
 to setup
@@ -214,12 +216,6 @@ end
 to set-hp-bars
 ask turtles with [is-player =  true] [make-hp-bar]  
 end
-
-;;
-;;TODO: Iniciar como tortugas genericas y luego crear las asignaciones
-;;
-
-;[who] of patches with [ turtles-here = 10]
 
 to show-life
     ifelse show-life?
@@ -275,71 +271,6 @@ to update-captains
   ]
     
 end
-
-
-;to move-captains
-;  let flag1 first [who] of flags with [ team = 1];considerar poner estas en globals
-;  let flag2 first [who] of flags with [ team = 2]
-;  
-;  
-;;    ifelse any? turtles with [team != myteam] in-radius 5 [
-;;    ;show "enemy near"
-;;    ask flagdefenders with [team = myteam ][
-;;     set behavior "defend"
-;;    ]
-;;  ][
-;;  ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
-;;      ask flagdefenders with [team = myteam ][
-;;     set behavior "patrol"
-;;    ]
-;;  ]
-;  
-;
-;  
-;  
-;  ask captains with [team = 1] [
-;    if (patch-ahead 1) != nobody
-;    [ifelse not any? turtles-on patch-ahead 1 
-;      [set heading towards flag flag2]
-;      [if any? ((turtles-on patch-ahead 1) with [who = flag2])
-;        [ask turtle flag2 [set status "captured"]]
-;        ;[set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
-;      ]
-;    ] 
-;    show-life
-;    validate2;validate-captain
-;  ]
-;  
-;    ask captains with [team = 2] [
-;    if (patch-ahead 1) != nobody
-;    [ifelse not any? turtles-on patch-ahead 1 
-;      [set heading towards flag flag1]
-;      [if any? ((turtles-on patch-ahead 1) with [who = flag1])
-;        [ask turtle flag1 [set status "captured"]]
-;       ; [set heading random 90] ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
-;      ]
-;    ] 
-;    show-life
-;    validate2;validate-captain
-;  ]
-;    
-;    ;;if under attack change bodyguard behaviors
-;    
-;end
-
-;;validates no turtle is on the way to prevent duplicated positions
-;to validate 
-;  let val patch-ahead 1
-;  let dir [ 90 -90]
-;  if val != nobody [
-;    ifelse not any? turtles-on val[
-;     fd normal
-;      ][
-;     left (one-of dir) ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
-;      ]
-;  ]
-;end
-;ask flagdefender 17 [ask patch-left-and-ahead 45 1 [ set pcolor white]]
 
 to validate2
   let front patch-ahead 1
@@ -441,9 +372,6 @@ to patrol-flag
     ]
 end
 
-to attack-on
-
-end
 
 to update-flag-status
   
@@ -474,6 +402,7 @@ to update-flag-status
   ]
   
   if status = "captured"[
+    
    ; setxy posxy (one-of captains with [team != myteam])
    set color orange
    if one-of captains with [team != myteam] != nobody [
@@ -483,7 +412,7 @@ to update-flag-status
   ifelse team = 1
    [set basey 15]
    [set basey -15]   
-    ifelse (xcor = basex or xcor = basex + 1) and (ycor = basey or ycor = basey + 1)
+    ifelse (xcor = basex or xcor = basex + 1) and (ycor = basey or ycor = basey + 1);;TODO:Chance sea validar el neighbor
     [write "Team " 
      write team
      write " WINS"
@@ -509,13 +438,6 @@ to update-flag-status
   
   
 end
-
-;to-report posxy [agent]
-;  ask agent [
-;    [report xcor
-;    report ycor]
-;  ]
-;end
 
 ;;validates no turtle is on the way to prevent duplicated positions
 to validate-captain 
@@ -591,119 +513,7 @@ to guard-captain
         validate2
       ] 
     ]
-  
-  
-  
-  
 end
-
-
-to move-bodyguards
-  ;if our captain has flag, attack aproaching enemies
-  ;else be near captain in case he is attacked
-      let captains2 one-of captains with [team = 2 ]
-    let captains1 one-of captains with [team = 1 ]
-    
-  ask bodyguards with [team = 1] [;;usar esto para atrapar al de la bandera
-    if captains1 != nobody[
-    ;face captains1
-    set heading random 360
-    show-life
-    validate2
-    ]
-    ]
-    ask bodyguards with [team = 2] [
-      if captains2 != nobody [
-    ;face captains2
-     set heading random 360
-    show-life
-    validate2
-      ]
-    ]
-end
-
-to move-flagdefenders
- ;attack players near our flag
- ;follow capturer until he is dead
- 
-; let players [captains 
-  ask-concurrent flagdefenders [
-    ;;set heading random 360
-    show-life
-    
-    let myteam team
-    let mydmg dmg
-    let captains2 one-of captains with [team = 2 ]
-    let captains1 one-of captains with [team = 1 ]
-    
-    ;;search for enemy captain
-    ifelse (team = 1) [;;usar esto para atrapar al de la bandera
-    
-      if captains2 != nobody [
-        face one-of captains with [team = 2 ]
-
-     
-    ;;attack
-
-    if (patch-ahead 1) != nobody [;; validate patch exists
-      ;;
-
-      ;;
-      ask patch-ahead 1 [;;patch infront of turtle
-        if (count turtles-here != 0) [ ;;turtle count -> should only be one or zero at all time
-        ;;show [who] of turtles-here
-        
-        ;;if  turtle one-of [who] of turtles-here team = 
-        ask turtle one-of [who] of turtles-here [
-          ;show team
-          ;show myteam
-          if (team != myteam) [
-            set color pink;;TODO:blink   
-            set life life - mydmg
-            dead?;;check if turtles hp is empty and kill turtle if <= 0
-          ]
-         ]
-        ]
-      ]
-    ]
-    ;;end attack
-    validate2
-      ]
-    ]
-    [
-    if captains1 != nobody [
-    face captains1
-    
-    ;;attack
-          if (patch-ahead 1) != nobody [;; validate patch exists
-      ask patch-ahead 1 [;;patch infront of turtle
-        if (count turtles-here != 0) [ ;;turtle count -> should only be one or zero at all time
-        ;;show [who] of turtles-here
-        
-        ;;if  turtle one-of [who] of turtles-here team = 
-        ask turtle one-of [who] of turtles-here [
-          if (team != myteam) [
-            set color pink;;TODO:blink   
-            set life life - mydmg; por que no sirve aqu’?
-            dead?;;check if turtles hp is empty and kill turtle if <= 0
-          ]
-         ]
-        ]
-      ]
-    ]
-    ;;end attack
-    validate2
-    ]
-    ]
-  ]
-end
-
-
-;move facing captain
-;face
-;attack
-
-
 
 to dead?
    if (life <= 0) [
@@ -711,11 +521,6 @@ to dead?
     ;die ;;maybe use die-clean
    ]
 end
-
-;;
-;ask flagdefender 16 [set life 10]
-;ask flagdefender 16 [update-hp-bar]
-;;
 
 ;;update hp-bar
 to update-hp-bar
@@ -744,7 +549,7 @@ to update-hp-bar
   
 end
 
-;;removes also visual effects together with turtle
+;;removes also visual effects together with turtle and kill turtle
 to die-clean
   ask self[
     ask turtles-here with [is-eye-candy = true ] [
@@ -757,12 +562,9 @@ end
 to start
   set-teamcolor;;restore colors
   update-flag-status
-  ;move-captains
   update-captains
   guard-captain
-  ;move-bodyguards
   patrol-flag
-  ;move-flagdefenders
   tick
   if (end-game = true)[stop]
 
@@ -772,10 +574,6 @@ end
 ;;;;;;;;;;;;For visual effects
 
 to make-halo  ;; runner procedure
-  ;; when you use HATCH, the new turtle inherits the
-  ;; characteristics of the parent.  so the halo will
-  ;; be the same color as the turtle it encircles (unless
-  ;; you add code to change it
   hatch-halos 1
   [ set size 1.5
     set is-eye-candy true
@@ -1071,7 +869,7 @@ Circle -16777216 true false 215 106 30
 flag
 false
 0
-Rectangle -7500403 true true 60 15 75 300
+Rectangle -6459832 true false 60 15 75 300
 Polygon -7500403 true true 90 150 270 90 90 30
 Line -7500403 true 75 135 90 135
 Line -7500403 true 75 45 90 45
