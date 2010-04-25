@@ -57,8 +57,7 @@ hp-bars-own[
 
 ;;global variables
 globals [ 
-  normal;;TODO:considerar eliminar
-  carrying-flag;;TODO:considerar eliminar
+
   end-game;;criteria for stopping the simulation
 ]
 
@@ -77,8 +76,6 @@ to default-shapes
 end
 
 to set-globals
-  set normal 1
-  set carrying-flag 0.5
   set end-game false
 end
 
@@ -738,7 +735,7 @@ to update-flag-status
           ifelse team = 1
           [set basey 15]
           [set basey -15]   
-          ifelse (xcor = basex or xcor = basex + 1) and (ycor = basey or ycor = basey + 1);;TODO:Chance sea validar el neighbor
+          ifelse any? patches with [pxcor = basex and pycor = basey] in-radius 2
           [write "Team " 
             write team
             write " WINS"
@@ -777,7 +774,7 @@ to validate-captain
   let val patch-ahead 1
   if val != nobody [
     if not any? turtles-on val[
-      fd normal ;;validate here if carrying flag
+      fd 1 ;;validate here if carrying flag
     ]
   ]
 end
@@ -1133,7 +1130,7 @@ CHOOSER
 defense-strat-team1
 defense-strat-team1
 "patrol" "box"
-1
+0
 
 CHOOSER
 28
