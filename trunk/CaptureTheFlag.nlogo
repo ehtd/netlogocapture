@@ -12,7 +12,7 @@ breed [hp-bars hp-bar]
 
 ;;characteristics
 turtles-own [ 
-  team;;team number (1 or 2)*TODO:podriamos ponerle red y green para m‡s sencillo
+  team;;team number (1 or 2)*TODO:podriamos ponerle red y green para mï¾‡s sencillo
 ]
 flags-own [ 
   is-eye-candy;;helper variable
@@ -32,7 +32,7 @@ bodyguards-own [
   is-eye-candy;;helper variable
   is-player;;helper variable
   life;;heath points
-  dmg;;damage;;TODO: considerar hacer el da–o random dmg para que que sea m‡s variable, tal vez aumentar el da–o a 20
+  dmg;;damage;;TODO: considerar hacer el daï¾–o random dmg para que que sea mï¾‡s variable, tal vez aumentar el daï¾–o a 20
   behavior;;task assigned "patrol","attack"
   patch-to-defend
   in-position
@@ -158,7 +158,7 @@ to search-for-captain
   ask agents with [team = 1][
     let myteam team
     let mydensity count turtles in-radius 5 with [team = myteam]    
-    show mydensity
+
     ifelse captain1 = nobody[
       set captain1 self 
     ][
@@ -174,7 +174,7 @@ to search-for-captain
     ask agents with [team = 2][
     let myteam team
     let mydensity count turtles in-radius 5 with [team = myteam]    
-    show mydensity
+
     ifelse captain2 = nobody[
       set captain2 self 
     ][
@@ -289,15 +289,17 @@ to set-hp-bars
 end
 
 to show-life
+  ask turtles with [is-player = true][
   ifelse show-life?
     [ set label life ]
     [ set label "" ]
+  ]
 end
 
-;;TODO: en veces no captura la bandera r‡pido a la primera, se queda en espera
 to update-captains
-  ;;agregarle inteligencia para que no se lance adelante de todos
+
   ask captains[
+    
     let myteam team
     let myflag one-of flags with [team = myteam]  
     let enemyflag one-of flags with [team != myteam] 
@@ -307,81 +309,64 @@ to update-captains
     ifelse team = 1
     [set basey 15]
     [set basey -15]
-    ;if (xcor = basex) and (ycor = basey) and (any? flags with [team != myteam and status = "captured"])
-    ;[stop];;TODO: validar que se use esto
     
+
     
-    show-life
+    ;Si ya llego a la base enemiga captura la bandera enemiga 
+    ifelse distance enemyflag <= 1
+    [
+      setxy ([xcor] of enemyflag ) ([ycor] of enemyflag) 
+      ask enemyflag [
+        set color yellow
+        set status "captured"
+      ]
+      create-link-to enemyflag [tie] 
+    ][
     
-    ;;remove contract from flagdefenders to allow him enter
+        ;Si la bandera enemiga no se ha capturado se dirige hacia la bandera enemiga   
+    if (any? flags with [team != myteam and status != "captured"])
+        [set heading towards enemyflag]        
+    ]
+    
+    ;;;;;;;;;;;;;;;;
+    ;Para el equipo sin inteligencia:
+    ;El capitan pide a los guardaespaldas que lo defiendan cuando hay enemigos cercanos a ï¿©l
+        if myteam = 2[
+      ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
+        ;show "enemy near"
+        ask bodyguards with [team = myteam ][
+          set behavior "defend"
+        ]
+      ]
+      [
+        ask bodyguards with [team = myteam ][
+          set behavior "patrol"
+        ]
+      ]
+    ]
+
+    ;;;;;;;;;;;;;;;;;
+    ;Para el equipo con inteligencia:
+    
+    ;remove contract from flagdefenders to allow him enter
     ask enemyflag [
       ifelse status = "captured" and distance patch basex basey < 3[
         ;;disperse flagdefenders
         ask flagdefenders with[team = myteam and behavior = "contracted"][
           set behavior "disperse" 
         ] 
-      ][
+      ]
+      [
       ask flagdefenders with[team = myteam and behavior = "disperse"][
         set behavior "patrol" 
       ] 
       ]
-      
     ]
     ;;;;;;;;;;;;;;
     
     if myteam = 1[
       
-      if offense-strat-team1 = "patrol" [
-
-        
-        if front != nobody[
-          if distance enemyflag = 1 ;;TODO: dejar solo una validacion
-          [
-            setxy ([xcor] of enemyflag ) ([ycor] of enemyflag) 
-            ask enemyflag [
-              set color yellow
-              set status "captured"
-            ]
-            create-link-to enemyflag [tie] 
-          ]
-        ]
-        
-         if (any? flags with [team != myteam and status != "captured"])
-        [set heading towards enemyflag]
-        
-        
-        ; if (ticks mod 2) = 0 [
-        validate2
-         ;]
-        
-;        ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
-;          ;show "enemy near"
-;          ask bodyguards with [team = myteam ][
-;            set behavior "defend"
-;          ]
-;        ][
-;        ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
-;        ask bodyguards with [team = myteam ][
-;          set behavior "patrol"
-;        ]
-;        ]
-      ]
-      
       if offense-strat-team1 = "V" [
-      
-      ;;validate full contract is-ready(only first time when enemy flag is "in-base"
-      ;;may use a helper variable
-      
-;        foreach contracted-list[
-;          ifelse ? = nobody[
-;            set contract-ready false
-;          ][
-;          set contract-ready true
-;          ]
-;        ]
-;        show contract-ready
-      
-      ;;ASK for contract
       
         ;;patches list of V formation
         ;     |p7|X.|C.|X.|p8|
@@ -397,24 +382,11 @@ to update-captains
         let p7 patch (xcor - 2) (ycor)
         let p8 patch (xcor + 2) (ycor)
         
-        set p1 patch xcor (ycor - 3)
-        set p2 patch (xcor - 1) (ycor - 2)
-        set p3 patch (xcor) (ycor - 2)
-        set p4 patch (xcor + 1) (ycor - 2)
-        set p5 patch (xcor - 1) (ycor - 1)
-        set p6 patch (xcor + 1) (ycor - 1)
-        set p7 patch (xcor - 2) (ycor)
-        set p8 patch (xcor + 2) (ycor)
-        
-        ; let p8 patch (xcor + 1) (ycor + 1)
-        ;;TODO: tal vez colocarlos en otro orden para que no se estorben y luego si llenar por prioridad
-        let positions (list p1 p2 p3 p4 p5 p7 p6 p8); sort neighbors; p2 p3 p4 p5 p6 p7 p8 ]
-        
+        let positions (list p1 p2 p3 p4 p5 p7 p6 p8) 
         let i 0
         set i 0
         let p nobody
         
-        ;;TODO:Considerar el caso en que el capitan muere... probablemente renovar los contratos o setear todos en "patrol"
         foreach contracted-list[
           
           set p item i positions
@@ -426,8 +398,6 @@ to update-captains
               [
                 set patch-to-defend p
                 set behavior "contracted"
-;                set color cyan
-                ;;agregar fd a contracted-list
               ]
               set contracted-list (replace-item i contracted-list to-be-contracted)
               
@@ -443,12 +413,10 @@ to update-captains
             set all-in-position true
           ]
         ]
-        
-        
         if all-in-position = true [
           set i 0
         ; if (ticks mod 2) = 0 [
-        validate2
+        
         ; ]
           ;;update patch to protect
           foreach contracted-list[
@@ -482,53 +450,14 @@ to update-captains
       
     ]
     
-    if myteam = 2[
-      if distance enemyflag > 0[
-      if (any? flags with [team != myteam and status != "captured"])
-      [set heading towards enemyflag]
-      ]
-      if front != nobody[
-        if any? (flags-on front) with [team != myteam];;Validar aqui por que en veces no captura bien la bandera
-        [
-          setxy ([xcor] of enemyflag ) ([ycor] of enemyflag) 
-          ask enemyflag [
-            set color yellow
-            set status "captured"
-          ]
-          create-link-to enemyflag [tie] 
-        ]
-      ]
-      
-     ;    if (ticks mod 2) = 0 [
-        validate2
-      ;   ]
-      
-      ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
-        ;show "enemy near"
-        ask bodyguards with [team = myteam ][
-          set behavior "defend"
-        ]
-      ][
-      ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
-      ask bodyguards with [team = myteam ][
-        set behavior "patrol"
-      ]
-      ]
-    ]
-    
-    
-    
-    
   ]
   
 end
 
-to validate2
+to move
+  ask-concurrent turtles with [is-player = true ] [
   let front patch-ahead 1
   let alternatives []
-  show-life
-  ;show front
-  ;let angle [ 45 -45 90 -90 ]
   
   if front != nobody [
     ifelse not any? turtles-on front[
@@ -554,16 +483,12 @@ to validate2
     
       ]
   ]
-  
+  ]
 end
 
 to patrol-flag
-  
-  
-  
   ;;PATROL
-  ask flagdefenders with [behavior = "patrol"][
-    
+  ask-concurrent flagdefenders with [behavior = "patrol"][ 
     let myteam team
     let myflag one-of flags with [team = myteam]  
     
@@ -571,12 +496,11 @@ to patrol-flag
       ;set color blue;;blink out of range turtles    
                     ;;move to a patch with less distance
       face myflag
-      validate2 
     ]
     [
       ;;move random if inside safe radius
       set heading random 360
-      validate2
+      
     ] 
   ]
   
@@ -584,9 +508,8 @@ to patrol-flag
   ask flagdefenders with [behavior = "disperse"][
     let pos[ -90 90]
     left one-of pos
-    validate2
-  ]
   
+  ]  
   
   ;;CONTRACTED
   ask flagdefenders with [behavior = "contracted" and patch-to-defend != nobody][
@@ -600,23 +523,15 @@ to patrol-flag
     
     if distance patch-to-defend > 0[
       set heading towards patch-to-defend
-      validate2
+      
     ]
     
-    ;ask myflag [
       set enemies turtles with [team != myteam and is-player = true] in-radius 2 
-   ; ]
     
-    ifelse any? enemies[
-      face one-of enemies
-    ][
-    face myflag
-    ]
+    ifelse any? enemies
+    [face one-of enemies]
+    [face myflag]
     
-    ;;attack enemy captain
-    ;    if one-of captains with [team != myteam] != nobody[
-    ;      face one-of captains with [team != myteam]
-    ;    ]
     
     if front != nobody [
       if (any? (turtles-on front) with [team != myteam and is-player = true])[
@@ -644,7 +559,6 @@ to patrol-flag
     
     let front patch-ahead 1
     ;let alternatives []
-    show-life
     
     if front != nobody [
       if (any? (turtles-on front) with [team != myteam and is-player = true])[
@@ -672,13 +586,12 @@ to patrol-flag
     ][
     face myflag
     ]
-    validate2
+    
   ]
 end
 
 
 to update-flag-status
-  
   ask flags[
     let myteam team
     
@@ -865,12 +778,12 @@ to guard-captain
       ;set color white;;blink out of range turtles    
                      ;;move to a patch with less distance
       face mycaptain
-      validate2 
+       
     ]
     [
       ;;move random if inside safe radius
       set heading random 360
-      validate2
+      
     ] 
   ]
   
@@ -886,7 +799,7 @@ to guard-captain
     
     if distance patch-to-defend > 0[
       set heading towards patch-to-defend
-      validate2
+      
     ]
     
 ;    ask myflag [
@@ -956,7 +869,7 @@ to guard-captain
       ][
       face mycaptain
       ]
-      validate2
+      
     ] 
   ]
 end
@@ -1042,18 +955,28 @@ to die-clean
 end
 
 to start
-  set-teamcolor;;restore colors
-  update-flag-status
-
-  update-captains
-    guard-captain
-  
-  patrol-flag
-  tick
-  if (end-game = true)[stop]
-  
+  if ciclos < 2
+  [set ciclos 1]
+  repeat ciclos [
+    setup
+    one-game
+  ]
 end
 
+to one-game
+  set-teamcolor
+  update-flag-status
+  update-captains
+  guard-captain
+  patrol-flag
+  show-life
+  move
+  tick
+  ifelse (end-game = true)
+  [stop ] 
+  [one-game]
+  
+end
 
 ;;;;;;;;;;;;For visual effects
 
@@ -1092,10 +1015,10 @@ to make-hp-bar  ;; runner procedure
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-745
-536
+213
+19
+748
+545
 17
 16
 15.0
@@ -1117,43 +1040,11 @@ GRAPHICS-WINDOW
 1
 ticks
 
-BUTTON
-21
-38
-87
-71
-Setup
-setup
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-
-BUTTON
-97
-38
-160
-71
-Start
-start
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-
 SWITCH
-29
-85
-149
-118
+33
+163
+153
+196
 show-life?
 show-life?
 1
@@ -1161,10 +1052,10 @@ show-life?
 -1000
 
 MONITOR
-17
-341
-155
-386
+24
+378
+162
+423
 Red turtles (Team 1)
 count turtles with [team = 1 and is-player = true]
 17
@@ -1173,9 +1064,9 @@ count turtles with [team = 1 and is-player = true]
 
 MONITOR
 20
-395
+437
 168
-440
+482
 Green turtles(Team 2)
 count turtles with [team = 2 and is-player = true]
 17
@@ -1183,34 +1074,61 @@ count turtles with [team = 2 and is-player = true]
 11
 
 TEXTBOX
-32
-142
-182
-160
+25
+214
+175
+232
 Team #1 Controls
 14
 0.0
 1
 
 CHOOSER
-25
-166
-179
-211
+18
+238
+172
+283
 defense-strat-team1
 defense-strat-team1
 "patrol" "box"
-0
+1
 
 CHOOSER
-28
-234
-179
-279
+18
+297
+169
+342
 offense-strat-team1
 offense-strat-team1
 "patrol" "V"
 1
+
+INPUTBOX
+21
+28
+176
+88
+ciclos
+100
+1
+0
+Number
+
+BUTTON
+79
+117
+142
+150
+NIL
+start
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 
 @#$#@#$#@
 WHAT IS IT?
