@@ -270,8 +270,7 @@ to update-captains
     if myteam = 1[
       
       if offense-strat-team1 = "patrol" [
-        if (any? flags with [team != myteam and status != "captured"])
-        [set heading towards enemyflag]
+
         
         if front != nobody[
           if any? (flags-on front) with [team != myteam];;Validar aqui por que en veces no captura bien la bandera
@@ -285,19 +284,25 @@ to update-captains
           ]
         ]
         
-        validate2
+         if (any? flags with [team != myteam and status != "captured"])
+        [set heading towards enemyflag]
         
-        ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
-          ;show "enemy near"
-          ask bodyguards with [team = myteam ][
-            set behavior "defend"
-          ]
-        ][
-        ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
-        ask bodyguards with [team = myteam ][
-          set behavior "patrol"
-        ]
-        ]
+        
+        ; if (ticks mod 2) = 0 [
+        validate2
+         ;]
+        
+;        ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
+;          ;show "enemy near"
+;          ask bodyguards with [team = myteam ][
+;            set behavior "defend"
+;          ]
+;        ][
+;        ;;solo para pruebas, faltan considerar otros aspectos como cuando el capitan se roba la bandera
+;        ask bodyguards with [team = myteam ][
+;          set behavior "patrol"
+;        ]
+;        ]
       ]
       
       if offense-strat-team1 = "V" [
@@ -329,6 +334,16 @@ to update-captains
         let p6 patch (xcor + 1) (ycor - 1)
         let p7 patch (xcor - 2) (ycor)
         let p8 patch (xcor + 2) (ycor)
+        
+        set p1 patch xcor (ycor - 3)
+        set p2 patch (xcor - 1) (ycor - 2)
+        set p3 patch (xcor) (ycor - 2)
+        set p4 patch (xcor + 1) (ycor - 2)
+        set p5 patch (xcor - 1) (ycor - 1)
+        set p6 patch (xcor + 1) (ycor - 1)
+        set p7 patch (xcor - 2) (ycor)
+        set p8 patch (xcor + 2) (ycor)
+        
         ; let p8 patch (xcor + 1) (ycor + 1)
         ;;TODO: tal vez colocarlos en otro orden para que no se estorben y luego si llenar por prioridad
         let positions (list p1 p2 p3 p4 p5 p7 p6 p8); sort neighbors; p2 p3 p4 p5 p6 p7 p8 ]
@@ -362,22 +377,6 @@ to update-captains
       
       ;;;;;;;;;;;;;
         if all-in-position = false[
-;          let val 0
-;          foreach positions[
-;            
-;;            if any? bodyguards-on ?  [;[
-;;              ask (bodyguards-on ?) with [in-position = true and team =  myteam][
-;;                set val val + 1
-;;              ]
-;;            ]
-;ask ? [
-;  if not any? bodyguards-here with[team = myteam][
-;
-;  set val val + 1
-;]
-;]
-;            
-;          ]
           if ticks > 15 [
             set all-in-position true
           ]
@@ -386,7 +385,9 @@ to update-captains
         
         if all-in-position = true [
           set i 0
-          validate2
+        ; if (ticks mod 2) = 0 [
+        validate2
+        ; ]
           ;;update patch to protect
           foreach contracted-list[
             if ? != nobody[
@@ -399,7 +400,7 @@ to update-captains
           ;;;;;;;;
           
           if (any? flags with [team != myteam and status != "captured"])
-          [set heading towards enemyflag]
+          [set heading towards enemyflag];;TODO: reduce
           
           if front != nobody[
             if any? (flags-on front) with [team != myteam];;Validar aqui por que en veces no captura bien la bandera
@@ -436,7 +437,9 @@ to update-captains
         ]
       ]
       
-      validate2
+     ;    if (ticks mod 2) = 0 [
+        validate2
+      ;   ]
       
       ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
         ;show "enemy near"
@@ -538,9 +541,9 @@ to patrol-flag
       validate2
     ]
     
-    ask myflag [
+    ;ask myflag [
       set enemies turtles with [team != myteam and is-player = true] in-radius 2 
-    ]
+   ; ]
     
     ifelse any? enemies[
       face one-of enemies
@@ -696,6 +699,12 @@ to update-flag-status
         
         ]
       ]
+      
+      if defense-strat-team1 = "box" and status = "captured" [ 
+          ask flagdefenders with [team = myteam ][
+          set behavior "defend"
+        ]
+      ]
     ]
     
     if myteam = 2[
@@ -738,7 +747,7 @@ to update-flag-status
           ifelse any? patches with [pxcor = basex and pycor = basey] in-radius 2
           [write "Team " 
             write team
-            write " WINS"
+            print " WINS"
             repeat 3 [ beep ]
             set end-game true
           ]
@@ -813,16 +822,14 @@ to guard-captain
     let enemies []
     let front patch-ahead 1
     
-    ifelse distance patch-to-defend > 0[
+    if distance patch-to-defend > 0[
       set heading towards patch-to-defend
       validate2
-    ][
-    set in-position true
     ]
     
-    ask myflag [
+;    ask myflag [
       set enemies turtles with [team != myteam and is-player = true] in-radius 2 
-    ]
+;    ]
     
     ifelse any? enemies[
       face one-of enemies
@@ -975,8 +982,9 @@ end
 to start
   set-teamcolor;;restore colors
   update-flag-status
-  guard-captain
+
   update-captains
+    guard-captain
   
   patrol-flag
   tick
@@ -1130,7 +1138,7 @@ CHOOSER
 defense-strat-team1
 defense-strat-team1
 "patrol" "box"
-0
+1
 
 CHOOSER
 28
