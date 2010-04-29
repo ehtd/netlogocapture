@@ -374,6 +374,23 @@ to update-captains
     
     if myteam = 1[
       
+      if offense-strat-team1 = "patrol"[
+        
+        ifelse any? turtles with [team != myteam and is-player = true] in-radius 3 [
+          ;show "enemy near"
+          ask bodyguards with [team = myteam ][
+            set behavior "defend"
+          ]
+        ]
+        [
+          ask bodyguards with [team = myteam ][
+            set behavior "patrol"
+          ]
+        ]
+        move
+        
+      ]
+      
       if offense-strat-team1 = "V" [
       
         ;;patches list of V formation
@@ -427,9 +444,9 @@ to update-captains
         
         if all-in-position = true [
           set i 0
-         if (ticks mod 2) = 0 [
+         ;if (ticks mod 2) = 0 [
         move
-         ]
+        ; ]
           ;;update patch to protect
           foreach contracted-list[
             if ? != nobody[
@@ -894,7 +911,7 @@ to guard-captain
       ][
       face mycaptain
       ]
-      
+      move
     ] 
   ]
 end
@@ -1262,7 +1279,7 @@ BUTTON
 523
 NIL
 normal-start
-NIL
+T
 1
 T
 OBSERVER
