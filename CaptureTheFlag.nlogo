@@ -360,7 +360,7 @@ to update-captains
     ask enemyflag [
       ifelse status = "captured" and distance patch basex basey < 3[
         ;;disperse flagdefenders
-        ask flagdefenders with[team = myteam and behavior = "contracted"][
+        ask flagdefenders with [team = myteam ][;and behavior = "contracted"][
           set behavior "disperse" 
         ] 
       ]
@@ -1178,7 +1178,7 @@ BUTTON
 142
 150
 NIL
-start
+start 
 NIL
 1
 T
