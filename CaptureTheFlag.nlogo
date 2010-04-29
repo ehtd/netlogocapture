@@ -27,6 +27,7 @@ captains-own [
   dmg;;damage;;TODO: remover este valor si no se usa
   contracted-list;list of contracts
   all-in-position;;Validates a contract list is fully assigned
+  contract-ready;Validates a contract exists
 ]
 bodyguards-own [
   is-eye-candy;;helper variable
@@ -58,6 +59,9 @@ hp-bars-own[
 
 ;;global variables
 globals [ 
+  winred
+  wingreen 
+  winner;
   captain1;
   captain2;
   end-game;;criteria for stopping the simulation
@@ -119,8 +123,9 @@ to assign-variables
         set life 100 
         set is-eye-candy false
         set is-player true
-        set contracted-list[nobody nobody nobody nobody nobody nobody nobody nobody]
+        set contracted-list[nobody nobody nobody nobody nobody nobody nobody]
         set all-in-position false
+        set contract-ready false
       ]
       ask bodyguards [  
         set life 100 
@@ -217,7 +222,7 @@ to assign-bodyguards
   ifelse offense-strat-team1 = "patrol" [
     set max-bg 10
   ][
-  set max-bg 8
+  set max-bg 7
   ]
   
   ask one-of captains with [team = 1][
@@ -256,7 +261,8 @@ to assign-flags
 end
 
 to setup
-  clear-all
+  clear-turtles
+  clear-patches
   assign-flags
   setup-turtles
 ;  create
@@ -325,7 +331,8 @@ to update-captains
     
         ;Si la bandera enemiga no se ha capturado se dirige hacia la bandera enemiga   
     if (any? flags with [team != myteam and status != "captured"])
-        [set heading towards enemyflag]        
+        [set heading towards enemyflag]  
+              
     ]
     
     ;;;;;;;;;;;;;;;;
@@ -343,6 +350,7 @@ to update-captains
           set behavior "patrol"
         ]
       ]
+      move
     ]
 
     ;;;;;;;;;;;;;;;;;
@@ -370,23 +378,24 @@ to update-captains
       
         ;;patches list of V formation
         ;     |p7|X.|C.|X.|p8|
-        ;        |p5|X.|p6|
-        ;        |p2|p3|p4|
+        ;     |p5|X.|X.|X.|p6|
+        ;        |p2|X.|p4|
         ;        |X.|p1|X.|
         let p1 patch xcor (ycor - 3)
         let p2 patch (xcor - 1) (ycor - 2)
         let p3 patch (xcor) (ycor - 2)
         let p4 patch (xcor + 1) (ycor - 2)
-        let p5 patch (xcor - 1) (ycor - 1)
-        let p6 patch (xcor + 1) (ycor - 1)
+        let p5 patch (xcor - 2) (ycor - 1)
+        let p6 patch (xcor + 2) (ycor - 1)
         let p7 patch (xcor - 2) (ycor)
         let p8 patch (xcor + 2) (ycor)
         
-        let positions (list p1 p2 p3 p4 p5 p7 p6 p8) 
+        let positions (list p1 p2 p4 p5 p7 p6 p8) ;removiendo p3
         let i 0
         set i 0
         let p nobody
         
+        if contract-ready = false[
         foreach contracted-list[
           
           set p item i positions
@@ -405,19 +414,22 @@ to update-captains
           ] 
           set i i + 1
         ]
+        set contract-ready true
+        ]
       
       
       ;;;;;;;;;;;;;
         if all-in-position = false[
-          if ticks > 15 [
+          if ticks > 10 [
             set all-in-position true
           ]
         ]
+        
         if all-in-position = true [
           set i 0
-        ; if (ticks mod 2) = 0 [
-        
-        ; ]
+         if (ticks mod 2) = 0 [
+        move
+         ]
           ;;update patch to protect
           foreach contracted-list[
             if ? != nobody[
@@ -455,10 +467,19 @@ to update-captains
 end
 
 to move
-  ask-concurrent turtles with [is-player = true ] [
+  
+
   let front patch-ahead 1
   let alternatives []
-  
+
+;      if is-captain? self and all-in-position = false and offense-strat-team1 = "V" [
+;       stop
+;      ]
+;      
+;      if is-bodyguard? self and offense-strat-team1 = "V" and patch-to-defend != nobody and (distance patch-to-defend = 0) [
+;        stop
+;      ]
+      
   if front != nobody [
     ifelse not any? turtles-on front[
       move-to front ][
@@ -476,14 +497,15 @@ to move
       set alternatives lput patch-left-and-ahead -90 1 alternatives
     ]
     if not empty? alternatives [
-      move-to one-of alternatives
+      move-to one-of alternatives      
     ]
     ;left (one-of angle) ;;probablemente sea mejor poner un heading hacia una casilla vacia para que no pierda tiempo.
     ;try to move
     
       ]
   ]
-  ]
+  
+  
 end
 
 to patrol-flag
@@ -496,11 +518,12 @@ to patrol-flag
       ;set color blue;;blink out of range turtles    
                     ;;move to a patch with less distance
       face myflag
+      move
     ]
     [
       ;;move random if inside safe radius
       set heading random 360
-      
+      move
     ] 
   ]
   
@@ -508,7 +531,7 @@ to patrol-flag
   ask flagdefenders with [behavior = "disperse"][
     let pos[ -90 90]
     left one-of pos
-  
+    move
   ]  
   
   ;;CONTRACTED
@@ -523,7 +546,7 @@ to patrol-flag
     
     if distance patch-to-defend > 0[
       set heading towards patch-to-defend
-      
+      move
     ]
     
       set enemies turtles with [team != myteam and is-player = true] in-radius 2 
@@ -719,8 +742,10 @@ to update-flag-status
           ifelse team = 1
           [set basey 15]
           [set basey -15]   
-          ifelse any? patches with [pxcor = basex and pycor = basey] in-radius 2
-          [write "Team " 
+          ifelse any? patches with [pxcor = basex and pycor = basey] in-radius 1
+          [
+            set winner team
+            write "Team" 
             write team
             print " WINS"
             repeat 3 [ beep ]
@@ -736,7 +761,7 @@ to update-flag-status
       if any? turtles with [team =  myteam and is-player and life > 0][
       ask max-one-of turtles  with [team =  myteam and is-player and life > 0] with-min [distance (one-of flags with [team != myteam])] [life]  
         [set breed captains
-          set contracted-list[nobody nobody nobody nobody nobody nobody nobody nobody]
+          set contracted-list[nobody nobody nobody nobody nobody nobody nobody]
           set all-in-position true
           ask bodyguards with [team = myteam][
            set behavior "patrol" 
@@ -778,12 +803,12 @@ to guard-captain
       ;set color white;;blink out of range turtles    
                      ;;move to a patch with less distance
       face mycaptain
-       
+      move
     ]
     [
       ;;move random if inside safe radius
       set heading random 360
-      
+     move
     ] 
   ]
   
@@ -799,7 +824,7 @@ to guard-captain
     
     if distance patch-to-defend > 0[
       set heading towards patch-to-defend
-      
+      move
     ]
     
 ;    ask myflag [
@@ -954,12 +979,36 @@ to die-clean
   ]
 end
 
+to normal-setup
+  setup
+end
+
+to normal-start
+  set-teamcolor
+  update-flag-status
+  update-captains
+  guard-captain
+  patrol-flag
+  show-life
+  ;move
+  tick
+  if (end-game = true)
+  [stop ] 
+end
+
 to start
+  clear-all
+  set winred 0
+  set wingreen 0
   if ciclos < 2
   [set ciclos 1]
   repeat ciclos [
     setup
     one-game
+    do-plots
+    if winner = 1 [set winred winred + 1]
+    if winner = 2 [set wingreen wingreen + 1]
+    reset-ticks 
   ]
 end
 
@@ -970,7 +1019,7 @@ to one-game
   guard-captain
   patrol-flag
   show-life
-  move
+  ;move
   tick
   ifelse (end-game = true)
   [stop ] 
@@ -978,6 +1027,15 @@ to one-game
   
 end
 
+to do-plots
+  set-current-plot "Sobrevivientes"
+  set-current-plot-pen "Red"
+  plot count turtles with [team = 1 and is-player = true]
+  set-current-plot-pen "Green"
+  plot count turtles with [team = 2 and is-player = true]
+  set-current-plot "Tiempo de Juego"
+  plot ticks
+end
 ;;;;;;;;;;;;For visual effects
 
 to make-halo  ;; runner procedure
@@ -1109,7 +1167,7 @@ INPUTBOX
 176
 88
 ciclos
-100
+50
 1
 0
 Number
@@ -1121,6 +1179,105 @@ BUTTON
 150
 NIL
 start
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+
+PLOT
+769
+21
+1177
+184
+Sobrevivientes
+Juego
+Sobrevivientes
+0.0
+10.0
+0.0
+21.0
+true
+false
+PENS
+"Red" 1.0 0 -2674135 true
+"Green" 1.0 0 -10899396 true
+
+MONITOR
+824
+403
+928
+448
+Equipo Rojo
+winred
+17
+1
+11
+
+MONITOR
+947
+404
+1055
+449
+Equipo Verde
+wingreen
+17
+1
+11
+
+TEXTBOX
+896
+368
+1046
+393
+Victorias
+20
+0.0
+1
+
+PLOT
+772
+200
+1176
+350
+Tiempo de Juego
+Juego
+Ticks
+0.0
+10.0
+0.0
+10.0
+true
+false
+PENS
+"default" 1.0 0 -16777216 true
+
+BUTTON
+797
+490
+908
+523
+NIL
+normal-start
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+
+BUTTON
+952
+469
+1069
+502
+NIL
+normal-setup
 NIL
 1
 T
