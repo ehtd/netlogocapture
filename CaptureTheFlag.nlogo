@@ -1,5 +1,6 @@
 ;TODO:Ver como hacer videos
 ;;allowed breeds
+breed [ agents agent]
 breed [ captains captain]
 breed [ bodyguards bodyguard]
 breed [ flags flag]
@@ -57,12 +58,39 @@ hp-bars-own[
 
 ;;global variables
 globals [ 
-
+  captain1;
+  captain2;
   end-game;;criteria for stopping the simulation
 ]
 
 
+to setup-turtles 
+  create-agents 21  [
+    set team 1
+    ]
+  create-agents 21 [
+     set team  2
+     ]
+  
+  ask agents with [team = 1][
+    set color red
+    setxy random-xcor random 15 
+      while [ [count turtles in-radius 2] of self > 1 = true or pycor = 0]
+      [ setxy random-xcor random 15 ]
+  ] 
+  
+    ask agents with [team = 2][
+    set color green
+    setxy random-xcor random -15 
+      while [ [count turtles in-radius 2] of self > 1 = true or pycor = 0]
+      [ setxy random-xcor random -15 ]
+  ]
+     
+  set captain1 nobody
+  set captain2 nobody
+end
 
+;TODO:la tortuga con mas tortugas alrededor se hace capitan
 
 ;;setting default shapes
 to default-shapes
@@ -80,26 +108,21 @@ to set-globals
 end
 
 ;;create players & items
-to create
-  (foreach [1 2]
-    [
-      create-flags 1 [ 
-        set team ?1 
+to assign-variables
+      ask flags [ 
         set is-eye-candy false
         set is-player false
         set status "in-base"
         set contracted-list[nobody nobody nobody nobody nobody nobody nobody]
       ]
-      create-captains 1 [ 
-        set team ?1 
+      ask captains  [ 
         set life 100 
         set is-eye-candy false
         set is-player true
         set contracted-list[nobody nobody nobody nobody nobody nobody nobody nobody]
         set all-in-position false
       ]
-      create-bodyguards 8 [ 
-        set team ?1  
+      ask bodyguards [  
         set life 100 
         set dmg 10 
         set is-eye-candy false
@@ -108,89 +131,14 @@ to create
         set patch-to-defend nobody
         set in-position false
       ]
-      create-flagdefenders 12 [ 
-        set team ?1  
+      ask flagdefenders [ 
         set life 100 
         set dmg 10 
         set is-eye-candy false
         set is-player true
         set behavior "patrol" 
-        set patch-to-defend nobody]
-    ]
-  )
-end
-
-;;align team players to own flag
-to reposition-team1
-  
-  ask flags with [team = 1] [
-    setxy 0 15
-    set pcolor red + 3
-    
-  ]
-  let flag-id first [who] of flags with [team = 1]
-  
-  ask captains with [team = 1 ][
-    setxy ([xcor] of flag flag-id ) ([ycor] of flag flag-id - 4) 
-    set heading 180 
-  ]
-  
-  let bg sort bodyguards with [team = 1 ] ;;bodyguards
-  let def sort flagdefenders with [team = 1 ];; flagdefenders
-  let space 0
-  
-  foreach bg [
-    set space space + 1
-    ask ? [ 
-      setxy ([xcor] of flag flag-id + space) ([ycor] of flag flag-id - 1)
-      set heading 180
-    ]
-  ]
-  
-  set space 0
-  foreach def [
-    set space space + 1
-    ask ? [ 
-      setxy ([xcor] of flag flag-id - space) ([ycor] of flag flag-id - 1)
-      set heading 180
-    ]
-  ]
-  
-end
-
-;;align team players to own flag 
-to reposition-team2
-  ask flags with [team = 2] [
-    setxy 0 -15
-    set pcolor green + 3
-  ]
-  let flag-id first [who] of flags with [team = 2]
-  ask captains with [team = 2 ] [
-    setxy ([xcor] of flag flag-id ) ([ycor] of flag flag-id) + 3 
-    set heading 0
-  ]
-  
-  let bg sort bodyguards with [team = 2 ] ;;bodyguards
-  let def sort flagdefenders with [team = 2 ];; flagdefenders
-  let space 0
-  
-  foreach bg [
-    set space space + 1
-    ask ? [ 
-      setxy ([xcor] of flag flag-id + space) ([ycor] of flag flag-id + 1)
-      set heading 0
-    ]
-  ]
-  
-  set space 0
-  foreach def [
-    set space space + 1
-    ask ? [ 
-      setxy ([xcor] of flag flag-id - space) ([ycor] of flag flag-id + 1)
-      set heading 0
-    ]
-  ]
-  
+        set patch-to-defend nobody
+        ]
 end
 
 ;;set team colors 1-red 2-green
@@ -205,17 +153,131 @@ to set-teamcolor
   ] 
 end
 
+to search-for-captain
+  
+  ask agents with [team = 1][
+    let myteam team
+    let mydensity count turtles in-radius 5 with [team = myteam]    
+    show mydensity
+    ifelse captain1 = nobody[
+      set captain1 self 
+    ][
+    ask captain1 [
+      let density count turtles in-radius 5 with [team = myteam]
+      if mydensity > density [
+        set captain1 myself 
+      ]   
+    ]
+    ]
+  ]
+  
+    ask agents with [team = 2][
+    let myteam team
+    let mydensity count turtles in-radius 5 with [team = myteam]    
+    show mydensity
+    ifelse captain2 = nobody[
+      set captain2 self 
+    ][
+    ask captain2 [
+      let density count turtles in-radius 5 with [team = myteam]
+      if mydensity > density [
+        set captain2 myself 
+      ]   
+    ]
+    ]
+  ]
+  
+end
+
+to assign-captains
+  
+  ask captain1 [
+    set breed captains
+  ]
+  ask captain2 [
+    set breed captains
+  ]
+end
+
+to assign-bodyguards
+  let i 0
+  let max-bg 10
+  ask one-of captains with [team = 2][
+    while [ i < 10][
+      
+      ask one-of agents with [team = 2] with-min [distance myself] [
+        set breed bodyguards
+        set i i + 1
+      ]
+    ]
+  ]
+  
+  set i 0 
+  
+  ifelse offense-strat-team1 = "patrol" [
+    set max-bg 10
+  ][
+  set max-bg 8
+  ]
+  
+  ask one-of captains with [team = 1][
+    while [ i < max-bg][
+      
+      ask one-of agents with [team = 1] with-min [distance myself] [
+        set breed bodyguards
+        set i i + 1
+      ]
+    ]
+  ]  
+end
+
+to assign-flagdefenders
+  ask agents [ 
+    set breed flagdefenders
+  ]
+end
+
+to assign-flags
+  
+  create-flags 1[
+    set team 1 
+    set color red
+    setxy 0 15
+    set pcolor red + 3
+  ]
+  
+  create-flags 1[
+    set team 2 
+    set color green
+    setxy 0 -15
+    set pcolor green + 3
+  ]
+  
+end
+
 to setup
   clear-all
-  create
+  assign-flags
+  setup-turtles
+;  create
   set-globals
   default-shapes
-  
-  set-teamcolor
+  search-for-captain
+  assign-captains
   set-halos
-  set-hp-bars
-  reposition-team1
-  reposition-team2  
+  
+  assign-bodyguards
+  assign-flagdefenders
+  
+  assign-variables;;sets init values for variables owned by each role
+  
+;  
+;  set-teamcolor
+
+
+;  set-hp-bars
+;  reposition-team1
+;  reposition-team2  
 end
 
 to set-halos
@@ -273,7 +335,7 @@ to update-captains
 
         
         if front != nobody[
-          if any? (flags-on front) with [team != myteam];;Validar aqui por que en veces no captura bien la bandera
+          if distance enemyflag = 1 ;;TODO: dejar solo una validacion
           [
             setxy ([xcor] of enemyflag ) ([ycor] of enemyflag) 
             ask enemyflag [
@@ -1001,7 +1063,7 @@ to make-halo  ;; runner procedure
     set is-eye-candy true
     set is-player false
     ;; Use an RGB color to make halo three fourths transparent
-    set color lput 125 extract-rgb color
+    set color lput 200 extract-rgb color
     ;; set thickness of halo to half a patch
     __set-line-thickness 0.1
     ;; We create an invisible directed link from the runner
@@ -1138,7 +1200,7 @@ CHOOSER
 defense-strat-team1
 defense-strat-team1
 "patrol" "box"
-1
+0
 
 CHOOSER
 28
