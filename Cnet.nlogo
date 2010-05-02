@@ -120,7 +120,7 @@ end
 ;;setting default shapes
 to default-shapes
   set-default-shape flags "flag" 
-  set-default-shape captains "person"
+  set-default-shape captains "captain"
   set-default-shape bodyguards "person"  
   set-default-shape flagdefenders "person soldier"
 end
@@ -316,7 +316,9 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;for managing intentions and beliefs;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to add-intention [new-intention]
-  set intentions lput new-intention intentions
+  if not i-have-intention? new-intention[
+    set intentions lput new-intention intentions
+  ]
   debug "==ADD-INTENTION"
   debug new-intention
 end
@@ -326,7 +328,7 @@ to add-belief [new-belief]
   debug new-belief
   set beliefs lput new-belief beliefs
 end
-
+      
 to clean-beliefs
     debug "==CLEAN-BELIEFS"
   set beliefs []
@@ -552,9 +554,7 @@ to agent-loop-flags
   ;;Deliberate which options I have according to beliefs ->add intentions
   
     if i-have-belief? "no-captain"[
-      if not i-have-intention? "asign-captain"[
         add-intention "asign-captain"
-      ]
     ]
     
 
@@ -587,21 +587,21 @@ to agent-loop-flags
     
 
     if i-have-belief? "i-need-flagdefenders"[
-      if not i-have-intention? "assign-def"[
+
         add-intention "assign-def"
-      ]
+
     ]
     
     if i-have-belief? "i-need-bodyguards"[
-      if not i-have-intention? "assign-bg"[
+
         add-intention "assign-bg"
-      ]
+
     ]
     
     if i-have-belief? "i-am-captured"[
-      if not i-have-intention? "ask-for-help"[
+
         add-intention "ask-for-help"
-      ]
+
     ]
     
 
@@ -684,7 +684,7 @@ to agent-loop-flags
       if length cnet-bids != 0[
         ;;award
         
-        print "CNET-AWARD"
+        debug "CNET-AWARD"
         ;select best offer
         
         let winner-agent nobody
@@ -807,20 +807,127 @@ end
 
 to agent-loop-def
     debug ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>AGENT-LOOP-DEF"
-  ask freeagents [
+  ask flagdefenders [
     debug "BEGIN AGENT PROCESS:"
     debug self
     
     let myteam team
+    let mydmg dmg
     let myflag one-of flags with [team = myteam]
     let enemyflag one-of flags with [team != myteam]
+    let enemies []
+    let action "none"
+    let extra nobody
+    let composite-action []
     
     ;;update beliefs according to percept
     
     clean-beliefs
     
+    if team = 1 and patch-to-defend != nobody and distance patch-to-defend != 0 [
+     add-belief "defend" 
+    ]
+    
+    if team = 1 and patch-to-defend != nobody and distance patch-to-defend = 0 [
+      add-belief "in-position"
+    ]
+    
+    if team = 2 [
+      add-belief "patrol"
+    ]
+    
+
+      
+    debug "SHOWING BELIEFS:"
+    debug-list beliefs
+
   ;;Deliberate which options I have according to beliefs
+      if i-have-belief? "patrol"[
+
+        add-intention "patrol-flag"
+      
+    ]
+      
+      if i-have-belief? "in-position"[
+
+        add-intention "protect-patch"
+      
+    ]
+            
+      
+      if i-have-belief? "defend"[
+
+          add-intention "defend-flag"
+
+      ]
+            
+      
+      debug "SHOWING INTENTIONS:"
+      debug-list intentions
+    
+      ;;Select Intentions->Do one intention each turn in a FIFO
+  if length intentions != 0[
+    
+    ifelse is-list? item 0 intentions [
+      set composite-action item 0 intentions
+      set extra item 1 composite-action
+      set action item 0 composite-action
+      debug "showing extra:"
+      debug-turtle extra
+    ][
+    set action item 0 intentions
+    ]
+  ]
   
+  if action = "patrol-flag"[
+    ifelse distance myflag > 7[
+      face myflag
+      move
+    ][
+    ;;move random if inside safe radius
+    set heading random 360
+    move
+    ]
+    set intentions remove "patrol-flag" intentions
+  ]
+  
+  if action = "protect-patch"[
+        let front patch-ahead 1
+        
+         set enemies turtles with [team != myteam] in-radius 1 
+         
+        ifelse any? enemies
+        [face one-of enemies]
+        [face myflag]
+
+;;heading
+    
+    if front != nobody [
+      if (any? (turtles-on front) with [team != myteam])[
+        ;;if  turtle one-of [who] of turtles-here team = 
+        ask (turtles-on front) with [team != myteam] [
+
+          set color pink;;TODO:blink   
+          set life life - mydmg
+          
+          dead?;;check if turtles hp is empty and kill turtle if <= 0
+
+        ]
+      ]
+    ]
+      
+    set intentions remove "protect-patch" intentions
+  ]
+    
+  
+    if action = "defend-flag"[
+      if distance patch-to-defend > 0[
+        set heading towards patch-to-defend
+        move
+      ]
+      set intentions remove "defend-flag" intentions
+  ]
+    
   ;;Select Intentions
   
 ;  IF the intention stack is not empty THEN do: Get intention I from the top of the stack; Execute I-name; IF I-done evaluates to true THEN pop I from stack;
@@ -869,22 +976,67 @@ end
 
 to agent-loop-captain
     debug ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>AGENT-LOOP-CAPTAIN"
-  ask freeagents [
+  ask captains [
     debug "BEGIN AGENT PROCESS:"
     debug self
     
     let myteam team
     let myflag one-of flags with [team = myteam]
     let enemyflag one-of flags with [team != myteam]
+    let base patch 0 15
+    if myteam = 2 
+    [set base patch 0 -15]
+    let action []
     
     ;;update beliefs according to percept
-    
     clean-beliefs
+    if distance enemyflag <= 1 
+    [add-belief "enemyflag-near"]
+    if (any? flags with [team != myteam and status != "captured"])
+    [add-belief "enemyflag-not-captured"]
+    if (any? flags with [team != myteam and status = "captured"])
+    [add-belief "i-have-the-flag"]
+    if distance base <= 1
+    [add-belief "base-near"] 
+
     
   ;;Deliberate which options I have according to beliefs
-  
+   if i-have-belief? "i-have-the-flag" and i-have-belief? "base-near"
+   [add-intention "touch-base"]
+   ifelse i-have-belief? "i-have-the-flag"
+   [add-intention "return-to-base"]
+   [if i-have-belief? "enemyflag-near" and i-have-belief? "enemyflag-not-captured"
+   [add-intention "take-enemyflag"]
+   if i-have-belief? "enemyflag-not-captured"
+   [add-intention "go-for-enemyflag"]
+   ]
+
   ;;Select Intentions
-  
+  if length intentions > 0
+  [set action item 0 intentions]
+   
+   write action
+   ;;Actions
+   if action = "go-for-enemyflag"
+   [set heading towards enemyflag
+     move]
+   if action = "take-enemyflag"
+   [  setxy ([xcor] of enemyflag ) ([ycor] of enemyflag) 
+      ask enemyflag [
+      set color yellow
+      set status "captured"
+      ]
+      create-link-to enemyflag [tie]
+      set intentions []
+   ]
+   if action = "return-to-base"
+   [set heading towards base
+     move]
+   if action = "touch-base"
+   [set end-game true
+    set winner myteam]
+   set intentions remove action intentions
+
 ;  IF the intention stack is not empty THEN do: Get intention I from the top of the stack; Execute I-name; IF I-done evaluates to true THEN pop I from stack;
 ;ELSE do nothing
 
@@ -897,6 +1049,7 @@ to agent-loop-captain
   ]
     debug "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<AGENT-LOOP-CAPTAIN"
 end
+
 
 
 to agent-loop
@@ -1573,12 +1726,12 @@ end
 ;  ]
 ;end
 
-;to dead?
-;  if (life <= 0) [
-;    die-clean
-;    ;die ;;maybe use die-clean
-;  ]
-;end
+to dead?
+  if (life <= 0) [
+    ;die-clean
+    die ;;maybe use die-clean
+  ]
+end
 
 
 
@@ -1646,7 +1799,9 @@ end
 
 to cnet-start
   agent-loop-flags
+  agent-loop-captain
   agent-loop-freeagent
+  agent-loop-def
 end
 
 ;to start
@@ -1928,7 +2083,7 @@ SWITCH
 556
 debug?
 debug?
-0
+1
 1
 -1000
 
@@ -2034,13 +2189,11 @@ Line -16777216 false 150 105 105 60
 captain
 false
 0
-Polygon -1184463 true false 150 90 149 83 101 83 49 151 69 192 71 199 107 157 112 195 81 284 95 298 143 299 150 256 158 298 204 298 219 283 188 191 193 155 223 193 249 145 199 84 149 84
-Circle -1184463 true false 105 0 90
-Circle -7500403 true true 110 5 80
-Polygon -7500403 true true 105 90 120 195 90 285 105 300 135 300 150 210 165 300 195 300 210 285 180 195 195 90
+Circle -1184463 true false 110 5 80
 Rectangle -7500403 true true 127 79 172 94
-Polygon -7500403 true true 105 90 60 150 75 180 135 105
-Polygon -7500403 true true 195 90 240 150 225 180 165 105
+Polygon -1184463 true false 105 90 60 150 75 180 135 105
+Polygon -1184463 true false 195 90 240 150 225 180 165 105
+Polygon -7500403 true true 105 90 120 195 90 285 105 300 135 300 150 210 165 300 195 300 210 285 180 195 195 90
 
 car
 false
