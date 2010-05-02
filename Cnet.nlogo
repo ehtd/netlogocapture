@@ -381,7 +381,6 @@ to-report player [agent]
     set a self
     debug-turtle self
   ]
-  
   debug "<<<TO-REPORT PLAYER"
 report a
 end
@@ -393,6 +392,9 @@ to cnet-broadcast-task [myteam task requirement1 reference1 requirement2 referen
   
   debug "CNET-START-TIME"
   debug cnet-start-time
+  
+  debug "CNET-END-TIME"
+  debug cnet-end-time
   ;;TODO:Validate time
   
   ask other turtles with [team = myteam and task-to-do = "none"][
@@ -401,7 +403,6 @@ to cnet-broadcast-task [myteam task requirement1 reference1 requirement2 referen
   ]
   set wait-for-bid false
   debug "<<<TO CNET-BROADCAST-TASK"
-  
 end
 
 to cnet-add-task [task requirement1 reference1 requirement2 reference2 contractor]
@@ -420,7 +421,6 @@ to bid [contractor agent offer]
    ask contractor [
      set cnet-bids lput (list agent offer) cnet-bids
    ]
-   
    debug "<<<TO BID"
 end
 
@@ -533,9 +533,9 @@ to agent-loop-flags
     ;;TODO:adjust radius if necesary
     if myteam = 1 and count flagdefenders with [team = myteam] in-radius 1 < 7 and status = "in-base"   ;;TODO: probablemente cambiar la condicion 1<7
     [
-      let no-def true
+;      let no-def true
       
-      if count flagdefenders with [team = 1] <= 7 [
+      if count flagdefenders with [team = 1] <= 7 and ticks >= cnet-end-time[
         add-belief "i-need-box"
       ] 
     ]
@@ -633,7 +633,7 @@ to agent-loop-flags
     if team = 1 [
       ;; announce
       if task-assigned = false [
-        cnet-broadcast-task team "captain" "distance" player enemy-flag "life" "none" 5 player self
+        cnet-broadcast-task team "captain" "distance" player enemy-flag "life" "none" 10 player self
         set task-assigned true
       ]
       ;;wait for bid
@@ -743,6 +743,20 @@ to agent-loop-flags
     debug "END ASSIGN-DEF"
   ]
   
+  if action ="assign-bg"[;;TODO:separar uno diferente para cada equipo
+    debug "BEGIN ASSIGN-BG"
+    ask freeagents with [team = 1][
+      if count flagdefenders with [team = 1] >= 7[
+      set breed bodyguards 
+      ]
+    ]
+    ask freeagents with [team = 2][
+      set breed bodyguards 
+    ]
+    set intentions remove "assign-bg" intentions
+    debug "END ASSIGN-BG"
+  ]
+  
   
 ;  IF the intention stack is not empty THEN do: Get intention I from the top of the stack; Execute I-name; IF I-done evaluates to true THEN pop I from stack;
 ;ELSE do nothing
@@ -790,6 +804,42 @@ to agent-loop-freeagent
   ]
     debug "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<AGENT-LOOP-FREEAGENT"
 end
+
+to agent-loop-def
+    debug ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>AGENT-LOOP-DEF"
+  ask freeagents [
+    debug "BEGIN AGENT PROCESS:"
+    debug self
+    
+    let myteam team
+    let myflag one-of flags with [team = myteam]
+    let enemyflag one-of flags with [team != myteam]
+    
+    ;;update beliefs according to percept
+    
+    clean-beliefs
+    debug "CNET-TASK:"
+    debug-list cnet-task
+    cnet-calculation
+
+    
+  ;;Deliberate which options I have according to beliefs
+  
+  ;;Select Intentions
+  
+;  IF the intention stack is not empty THEN do: Get intention I from the top of the stack; Execute I-name; IF I-done evaluates to true THEN pop I from stack;
+;ELSE do nothing
+
+  ;;make plan
+  
+  ;;execute plan
+      debug "END AGENT PROCESS:"
+    debug self
+    
+  ]
+    debug "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<AGENT-LOOP-DEF"
+end
+
 
 to agent-loop
   
@@ -1820,7 +1870,7 @@ SWITCH
 556
 debug?
 debug?
-0
+1
 1
 -1000
 
