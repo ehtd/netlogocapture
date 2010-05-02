@@ -818,10 +818,6 @@ to agent-loop-def
     ;;update beliefs according to percept
     
     clean-beliefs
-    debug "CNET-TASK:"
-    debug-list cnet-task
-    cnet-calculation
-
     
   ;;Deliberate which options I have according to beliefs
   
@@ -838,6 +834,68 @@ to agent-loop-def
     
   ]
     debug "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<AGENT-LOOP-DEF"
+end
+
+to agent-loop-bg
+    debug ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>AGENT-LOOP-BG"
+  ask freeagents [
+    debug "BEGIN AGENT PROCESS:"
+    debug self
+    
+    let myteam team
+    let myflag one-of flags with [team = myteam]
+    let enemyflag one-of flags with [team != myteam]
+    
+    ;;update beliefs according to percept
+    
+    clean-beliefs
+    
+  ;;Deliberate which options I have according to beliefs
+  
+  ;;Select Intentions
+  
+;  IF the intention stack is not empty THEN do: Get intention I from the top of the stack; Execute I-name; IF I-done evaluates to true THEN pop I from stack;
+;ELSE do nothing
+
+  ;;make plan
+  
+  ;;execute plan
+      debug "END AGENT PROCESS:"
+    debug self
+    
+  ]
+    debug "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<AGENT-LOOP-BG"
+end
+
+to agent-loop-captain
+    debug ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>AGENT-LOOP-CAPTAIN"
+  ask freeagents [
+    debug "BEGIN AGENT PROCESS:"
+    debug self
+    
+    let myteam team
+    let myflag one-of flags with [team = myteam]
+    let enemyflag one-of flags with [team != myteam]
+    
+    ;;update beliefs according to percept
+    
+    clean-beliefs
+    
+  ;;Deliberate which options I have according to beliefs
+  
+  ;;Select Intentions
+  
+;  IF the intention stack is not empty THEN do: Get intention I from the top of the stack; Execute I-name; IF I-done evaluates to true THEN pop I from stack;
+;ELSE do nothing
+
+  ;;make plan
+  
+  ;;execute plan
+      debug "END AGENT PROCESS:"
+    debug self
+    
+  ]
+    debug "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<AGENT-LOOP-CAPTAIN"
 end
 
 
@@ -1870,7 +1928,7 @@ SWITCH
 556
 debug?
 debug?
-1
+0
 1
 -1000
 
