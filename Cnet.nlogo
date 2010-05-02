@@ -14,7 +14,7 @@ turtles-own [
   beliefs;; current state of the world
 ;;game variables
   team;;team number (1 or 2)
-  life;;heath points
+  ;life;;heath points
   dmg;;damage;;TODO: remover este valor si no se usa
 ;;cnet variables
   task-to-do;;task commited to do
@@ -32,15 +32,18 @@ flags-own [
   contracts;list of posible contracts
   contracted;list of contracted makes match with 
 ]
-;captains-own [
-;  is-eye-candy;;helper variable
-;  is-player;;helper variable
-;  life;;heath points
-;  dmg;;damage;;TODO: remover este valor si no se usa
-;  contracted-list;list of contracts
-;  all-in-position;;Validates a contract list is fully assigned
-;  contract-ready;Validates a contract exists
-;]
+captains-own [
+  life;;heath points
+]
+bodyguards-own [
+  life;;heath points
+]
+flagdefenders-own [
+  life;;heath points
+]
+freeagents-own [
+  life;;heath points
+]
 ;bodyguards-own [
 ;  is-eye-candy;;helper variable
 ;  is-player;;helper variable
@@ -894,7 +897,7 @@ to agent-loop-def
   if action = "protect-patch"[
         let front patch-ahead 1
         
-         set enemies turtles with [team != myteam] in-radius 1 
+         set enemies turtles with [team != myteam] in-radius 2 
          
         ifelse any? enemies
         [face one-of enemies]
@@ -907,11 +910,13 @@ to agent-loop-def
         ;;if  turtle one-of [who] of turtles-here team = 
         ask (turtles-on front) with [team != myteam] [
 
-          set color pink;;TODO:blink   
-          set life life - mydmg
-          
-          dead?;;check if turtles hp is empty and kill turtle if <= 0
-
+          if not is-flag? self[
+            set color pink;;TODO:blink   
+            set life life - mydmg
+            
+            dead?;;check if turtles hp is empty and kill turtle if <= 0
+            
+          ]
         ]
       ]
     ]
@@ -1797,7 +1802,19 @@ end
 ;  [stop ] 
 ;end
 
+to set-teamcolor
+  ask turtles [
+    ifelse (team = 1) [
+      set color red
+    ] 
+    [
+      set color green
+    ]
+  ] 
+end
+
 to cnet-start
+  set-teamcolor
   agent-loop-flags
   agent-loop-captain
   agent-loop-freeagent
@@ -2067,7 +2084,7 @@ BUTTON
 557
 NIL
 cnet-start
-NIL
+T
 1
 T
 OBSERVER
