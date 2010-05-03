@@ -1114,12 +1114,17 @@ to agent-loop-captain
     if myteam = 2 
     [set base patch 0 -15]
     let action []
-    let myenemies  turtles with [team != myteam and is-player] in-radius 3
     let mycap one-of captains with [team = myteam]
 
     
     ;;update beliefs according to percept
     clean-beliefs
+    
+    if team = 1 [
+    if not any? bodyguards with [team = myteam] in-radius 3
+    [add-belief "in-danger"]
+     ]
+    
     if distance enemyflag <= 1 
     [add-belief "enemyflag-near"]
     if (any? flags with [team != myteam and status != "captured"])
@@ -1129,32 +1134,29 @@ to agent-loop-captain
     if distance base <= 1
     [add-belief "base-near"]
      
-     if team = 1 [
-    if any? myenemies 
-    [add-belief "in-danger"]
-     ]
     
   ;;Deliberate which options I have according to beliefs
    if i-have-belief? "i-have-the-flag" and i-have-belief? "base-near"
    [add-intention "touch-base"]
    ifelse i-have-belief? "i-have-the-flag"
    [add-intention "return-to-base"]
+   [ifelse i-have-belief? "in-danger"
+   [add-intention "wait-for-help"]
+
    [if i-have-belief? "enemyflag-near" and i-have-belief? "enemyflag-not-captured"
    [add-intention "take-enemyflag"]
    if i-have-belief? "enemyflag-not-captured"
    [add-intention "go-for-enemyflag"]
    ]
-   ;if i-have-belief? "in-danger"
-   ;[add-intention "ask-for-help"]
-
+   ]
   ;;Select Intentions
   if length intentions > 0
   [set action item 0 intentions]
    
    ;write action
    ;;Actions
-      ;if action = "ask-for-help"
-     ; []
+      if action = "wait-for-help"
+     []
    if action = "go-for-enemyflag"
    [set heading towards enemyflag
      move]
@@ -1370,6 +1372,7 @@ to start
 end
 
 to one-game
+  show-life
   set-teamcolor
   agent-loop-flags
   agent-loop-def
@@ -1428,7 +1431,7 @@ SWITCH
 196
 show-life?
 show-life?
-1
+0
 1
 -1000
 
@@ -1460,15 +1463,15 @@ INPUTBOX
 176
 88
 loops
-100
+500
 1
 0
 Number
 
 BUTTON
-79
+65
 117
-142
+128
 150
 NIL
 start
