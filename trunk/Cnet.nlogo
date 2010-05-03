@@ -630,18 +630,22 @@ to agent-loop-flags
         
       ]
     ]
-    
     if team = 2 [
-      ask one-of turtles with [team = myteam and is-player][;TODO: FALTA VALIDAR QUE SE GANE/PIERDA CUANDO SE ACABAN LOS JUGADORES
-        set breed captains
-        set dmg 0
+      ifelse any? turtles with [team = myteam and is-player][
+        ask one-of turtles with [team = myteam and is-player][;TODO: FALTA VALIDAR QUE SE GANE/PIERDA CUANDO SE ACABAN LOS JUGADORES
+          set breed captains
+          set dmg 0
         ]
-      set intentions remove "asign-captain" intentions
-      debug-turtle self
-    ]
-    debug "END CAPTAIN REQUEST----------"
+        set intentions remove "asign-captain" intentions
+        debug-turtle self
+      ]
+      [set end-game true
+        set winner 1]
+      
+      debug "END CAPTAIN REQUEST----------"
+      
+    ]  
   ]
-  
   if action = "box-formation"[
     debug "BEGIN BOX REQUEST-------"
     ;; announce
@@ -1277,7 +1281,9 @@ to move
       set alternatives lput patch-left-and-ahead -90 1 alternatives
     ]
     if not empty? alternatives [
-      move-to one-of alternatives      
+      let next one-of alternatives
+     if next != patch 0 15 and next != patch 0 -15 
+      [move-to next]  
     ]
       ]
   ]
@@ -1431,7 +1437,7 @@ SWITCH
 196
 show-life?
 show-life?
-0
+1
 1
 -1000
 
