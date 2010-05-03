@@ -632,7 +632,7 @@ to agent-loop-flags
     ]
     
     if team = 2 [
-      ask one-of turtles with [team = myteam and is-player][
+      ask one-of turtles with [team = myteam and is-player][;TODO: FALTA VALIDAR QUE SE GANE/PIERDA CUANDO SE ACABAN LOS JUGADORES
         set breed captains
         set dmg 0
         ]
@@ -1565,47 +1565,144 @@ debug?
 @#$#@#$#@
 WHAT IS IT?
 -----------
-This section could give a general understanding of what the model is trying to show or explain.
+This is a capture the flag simulation between two teams (red vs green). The objetive of this simulation is to prove the advantajes of having multiagent coordination. Red team implements contract-net to assign roles for captain, bodyguards and for flagdefenders for making  a "box" cover for their flag. Green team has only basic behaviors such as patrol and defend. Green also has the advantaje of inmediatelly moving, while Red takes some time for assigning roles.
 
+There are five role types: freeagents, flags, captains, bodyguards and flagdefenders.
+
+Flags
+One flag for each team and has its position fixed at game start. Has status ("captured" or "in-base"). Flags decide what roles should be assigned to the freeagents. 
+
+Freeagents
+At the beginning of the game all agents start as freeagents, meaning that any role can be assigned to them. 
+
+Captains
+The only agent capable of capturing enemy flag. It Can't attack other agents.
+
+Bodyguards
+Protect captain from enemies by patrolling around captain and attacking any enemy near their captain.
+
+Flagdefenders
+Protect the flag and attack all aproaching enemies.
+
+Both teams have basic capabilities such as: move and attack.
+
+AGENTS
+------------
+42 total agents
+
+21 per team
+
+1 flag
+20 freeagents
+
+
+GAME RULES
+------------
+
+- When enemy flag is captured by a captain and returned to their own base the game ends.
+- Only captain can capture flag. A new captain is assigned if he dies.
+- Only bodyguards and flagdefenders can attack, but both roles can attack and kill captains.
+- If a captain carrying a flag is killed, the flag returns to its base automatically.
+- It is not necesary to have own flag in base to end the game. This meaning that the only and principal goal is to retrieve enemy flag.
 
 HOW IT WORKS
 ------------
+
+The execution is a loop that includes the following:
+
+  agent-loop-flags : Roles are assigned here. Also contracts are broadcasted by the flags.
+  agent-loop-captain : Captain actions for capturing flag and returning to base
+  agent-loop-def : Defending, patrolling and formations.
+  agent-loop-bg: Patrolling and Captain protection.
+  agent-loop-freeagent : Freeagents waiting for role to be assigned
+
 This section could explain what rules the agents use to create the overall behavior of the model.
+
+ROLES ASSIGNMENT
+------------
+
+Red Team:
+Captain: Nearest agent to flag with higher life
+Flagdefenders: 7 freeagents to surround flag
+Bodyguards: The rest of the freeagents
+
+Green Team:
+Captain: Random agent
+Flagdefenders : 10 random agents
+Bodyguards: The rest of the freeagents
+
 
 
 HOW TO USE IT
 -------------
-This section could explain how to use the model, including a description of each of the items in the interface tab.
+Type the number of times you want to execute the model in to the Loops textbox. Press start and the simulation will begin.
 
+Two monitors are used for displaying the number of agents in each team during execution. This is only useful when executing only one loop. 
 
-THINGS TO NOTICE
-----------------
-This section could give some ideas of things for the user to notice while running the model.
+When executing more than one loop, the plot to the right of the model is recommended, as it shows graphically the agents that remain alive at the end of the cycle.
 
+Game Time is also a plot what displays the ticks spended for each game round.
 
-THINGS TO TRY
--------------
-This section could give some ideas of things for the user to try to do (move sliders, switches, etc.) with the model.
+Victories are shown in monitors to the right of the model. Each green or red win is counted and displayed.
 
 
 EXTENDING THE MODEL
 -------------------
-This section could give some ideas of things to add or change in the procedures tab to make the model more complicated, detailed, accurate, etc.
+At the moment attack coordination was not implemented, only flag defending and roles assignment. Future work may include implementing another type of coordination to allow bodyguard block and attack enemies more efficiently.
 
 
-NETLOGO FEATURES
+BDI AGENTS
 ----------------
-This section could point out any especially interesting or unusual features of NetLogo that the model makes use of, particularly in the Procedures tab.  It might also point out places where workarounds were needed because of missing features.
+
+The major effort was to use the BDI model in netlogo, for this, some research was made and functions were created based in the documents: Agents with Beliefs and Intentions in Netlogo and Symbolic, intentional and deliberative agents.
+
+Functions created include:
+add-intention [new-intention]
+add-belief [new-belief]
+clean-beliefs
+i-have-intention? [intention]
+i-have-belief? [belief]
 
 
-RELATED MODELS
---------------
-This section could give the names of models in the NetLogo Models Library or elsewhere which are of related interest.
+AGENT CONTROL LOOP
+----------------
+
+while true 
+1. observe the world;
+2. update internal world model;
+3. deliberate about what intention to achieve next;
+4. use means-ends reasoning to get a plan for the intention;
+5. execute the plan
+end while
+
+
+
+CONTRACT-NET
+----------------
+
+In this model contract-net is used for task assignment. For this task some functions were created to simulate the exact behavior of contract-net. 
+
+This includes: Broadcast, Bidding and Awarding.
+
+Broadcasting sends request in a message package: 
+[task requirement1 reference1 requirement2 reference2 contractor]
+
+Bidders receive task and bid by sending their offers.
+
+Contractor then picks the higher bid and awards it with the contract.
 
 
 CREDITS AND REFERENCES
 ----------------------
-This section could contain a reference to the model's URL on the web if it has one, as well as any other necessary credits or references.
+Model designed and programmed by Ernesto Torres and Alan Torres
+
+Reference:
+Agents with Beliefs and Intentions in Netlogo
+Ilias Sakellariou March 2004, Updated March 2008
+
+Symbolic, intentional and deliberative agents 
+PDF presentation in Multiagent systems course
+
 @#$#@#$#@
 default
 true
