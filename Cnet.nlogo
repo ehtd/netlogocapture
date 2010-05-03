@@ -26,6 +26,7 @@ turtles-own [
   cnet-bids;
 ;;extras
   patch-to-defend
+  is-player;
 ]
 flags-own [ 
   status ;"captured", "dropped", "in-base"
@@ -83,6 +84,7 @@ to setup-turtles
     set dmg 10
     set task-to-do "none"
     set patch-to-defend nobody
+    set is-player true
   ]
   create-freeagents 21 [
     set team  2
@@ -98,6 +100,7 @@ to setup-turtles
     set dmg 10
     set task-to-do "none"
     set patch-to-defend nobody
+    set is-player true
   ]
   
   ask freeagents with [team = 1][
@@ -220,7 +223,7 @@ to assign-bodyguards
   ask one-of captains with [team = 2][
     while [ i < 10][
       
-      ask one-of agents with [team = 2] with-min [distance myself] [
+      ask one-of agents with [team = 2] with-min [distance self] [
         set breed bodyguards
         set i i + 1
       ]
@@ -264,6 +267,7 @@ to setup-flags
     set cnet-bids []
     set task-assigned false
     set contracts []
+    set is-player false
   ]
   create-flags 1[
     set team 2 
@@ -276,12 +280,14 @@ to setup-flags
     set cnet-bids []
     set task-assigned false
     set contracts []
+    set is-player false
   ]
 end
 
 to setup
   clear-turtles
   clear-patches
+  clear-links
   setup-flags
   
   setup-turtles
@@ -452,11 +458,13 @@ to award [task contract]
   ;;award
   debug "WINNER:"
   debug-turtle winner-agent
+  if winner-agent != nobody[;;TODO:reasignar a uno no muerto
   ask winner-agent [
     set breed captains
     set task-to-do task
     set dmg 0
     set patch-to-defend nobody
+  ]
   ]
   
   set cnet-bids []
@@ -511,7 +519,26 @@ to agent-loop-flags
     
     clean-beliefs
     
-
+    if status = "in-base" [
+;      let basx 0
+;      let basy 15
+      ifelse team = 1
+      [move-to patch 0 15]
+      [move-to patch 0 -15] 
+      
+;      set xcor basx
+;      set ycor basy
+    ]
+    
+    if count freeagents <= 0[
+      if one-of captains with [team = myteam] = nobody[
+        if any? turtles with [team =  myteam and is-player and life > 0][
+          ask max-one-of turtles  with [team =  myteam and is-player and life > 0] with-min [distance (one-of flags with [team != myteam])] [life]  
+          [set breed captains]
+        ]
+      ]
+    ]
+    
     
     ;;update beliefs according to percept
     ask turtles with [team = myteam] [
@@ -534,7 +561,7 @@ to agent-loop-flags
       add-belief "i-am-captured"
     ]
     
-    if myteam = 2 and count flagdefenders with [team = myteam] = 0 [
+    if myteam = 2 and count flagdefenders with [team = myteam] = 0 and count turtles with [team = myteam and is-player = true] > 1 [
        add-belief "i-need-flagdefenders"
     ]
     ;;TODO:adjust radius if necesary
@@ -656,7 +683,7 @@ to agent-loop-flags
     ]
     
     if team = 2 [
-      ask one-of turtles with [team = myteam][
+      ask one-of turtles with [team = myteam and is-player][
         set breed captains
         set dmg 0
         ]
@@ -717,10 +744,13 @@ to agent-loop-flags
         ;;award
         debug "WINNER:"
         debug-turtle winner-agent
+        
+        if winner-agent != nobody[;TODO: ver por que mueren y que gane otra que esté vivo
         ask winner-agent [
           set breed flagdefenders
           set task-to-do "box-formation"
           set patch-to-defend extra
+        ]
         ]
         set cnet-bids []
   
@@ -831,9 +861,9 @@ to agent-loop-def
     ;;update beliefs according to percept
     
     clean-beliefs
-        debug "CNET-TASK:"
-    debug-list cnet-task
-    cnet-calculation
+;        debug "CNET-TASK:"
+;    debug-list cnet-task
+;    cnet-calculation
     if team = 1 [
     ifelse [status] of myflag = "captured"
     [add-belief "myflag-captured"]
@@ -911,31 +941,33 @@ to agent-loop-def
   
   if action = "recover-flag"
   [
-        let front patch-ahead 1
-     if front != nobody [
-      ifelse (any? (captains-on front) with [team != myteam])[
-        ;;if  turtle one-of [who] of turtles-here team = 
-        ask (turtles-on front) with [team != myteam] [
-
-          if not is-flag? self[
-            set color pink;;TODO:blink   
-            set life life - 10
-            
-            dead?;;check if turtles hp is empty and kill turtle if <= 0
-            
-          ]
-        ]
-      ]
-      [set heading towards myflag
-        move]
-    ]
+        set heading towards myflag
+        move
+  attack myteam
+;        let front patch-ahead 1
+;     if front != nobody [
+;      ifelse (any? (captains-on front) with [team != myteam])[
+;        ;;if  turtle one-of [who] of turtles-here team = 
+;        ask (turtles-on front) with [team != myteam and is-player = true] [
+;
+;          if not is-flag? self[
+;            set color pink;;TODO:blink   
+;            ;set life life - 10
+;            
+;            dead?;;check if turtles hp is empty and kill turtle if <= 0
+;            
+;          ]
+;        ]
+;      ]
+;
+;    ]
      set intentions remove action intentions
   ]
   
   if action = "attack"[
         let front patch-ahead 1
         
-         set enemies turtles with [team != myteam] in-radius 3 
+         set enemies turtles with [team != myteam and is-player = true] in-radius 3 
          
         ifelse any? enemies
         [set heading towards one-of enemies
@@ -943,22 +975,22 @@ to agent-loop-def
         [face myflag]
 
 ;;heading
-    
-    if front != nobody [
-      if (any? (turtles-on front) with [team != myteam])[
-        ;;if  turtle one-of [who] of turtles-here team = 
-        ask (turtles-on front) with [team != myteam] [
-
-          if not is-flag? self[
-            set color pink;;TODO:blink   
-            set life life - mydmg
-            
-            dead?;;check if turtles hp is empty and kill turtle if <= 0
-            
-          ]
-        ]
-      ]
-    ]
+    attack myteam
+;    if front != nobody [
+;      if (any? (turtles-on front) with [team != myteam])[
+;        ;;if  turtle one-of [who] of turtles-here team = 
+;        ask (turtles-on front) with [team != myteam and is-player = true] [
+;
+;          if not is-flag? self[
+;            set color pink;;TODO:blink   
+;            ;set life life - mydmg
+;            
+;            dead?;;check if turtles hp is empty and kill turtle if <= 0
+;            
+;          ]
+;        ]
+;      ]
+;    ]
       
     set intentions remove action intentions
   ]
@@ -979,7 +1011,7 @@ to agent-loop-def
   if action = "protect-patch"[
         let front patch-ahead 1
         
-         set enemies turtles with [team != myteam] in-radius 2 
+         set enemies turtles with [team != myteam and is-player = true] in-radius 2 
          
         ifelse any? enemies
         [face one-of enemies]
@@ -1017,17 +1049,17 @@ end
 to attack [myteam]
   let front patch-ahead 1
     if front != nobody [
-      if (any? (turtles-on front) with [team != myteam])[
+      if (any? (turtles-on front) with [team != myteam and is-player = true])[
         ;;if  turtle one-of [who] of turtles-here team = 
-        ask (turtles-on front) with [team != myteam] [
-
-          if not is-flag? self[
+        ask (turtles-on front) with [team != myteam and is-player = true] [
+           show self
+          ;if not is-flag? self[
             set color pink;;TODO:blink   
             set life life - 10
             
             dead?;;check if turtles hp is empty and kill turtle if <= 0
             
-          ]
+          ;]
         ]
       ]
     ]
@@ -1051,9 +1083,9 @@ to agent-loop-bg
     ;;update beliefs according to percept
     
     clean-beliefs
-            debug "CNET-TASK:"
-    debug-list cnet-task
-    cnet-calculation
+;            debug "CNET-TASK:"
+;    debug-list cnet-task
+;    cnet-calculation
     
     
 
@@ -1136,7 +1168,7 @@ to agent-loop-bg
     if action = "defend-captain" and mycaptain != nobody[
       
       ask mycaptain [
-        set enemies turtles with [team != myteam] in-radius 2;;TODO:ajustar radio
+        set enemies turtles with [team != myteam and is-player = true] in-radius 2;;TODO:ajustar radio
       ]
       
       ifelse any? enemies[
@@ -1180,6 +1212,8 @@ to agent-loop-captain
     [set base patch 0 -15]
     let action []
     
+
+    
     ;;update beliefs according to percept
     clean-beliefs
     if distance enemyflag <= 1 
@@ -1218,6 +1252,7 @@ to agent-loop-captain
       set color yellow
       set status "captured"
       ]
+      
       create-link-to enemyflag [tie]
       set intentions []
    ]
@@ -1920,7 +1955,10 @@ end
 
 to dead?
   if (life <= 0) [
-    die-clean
+
+    write "dying:"
+    show self
+        die-clean
     ;die ;;maybe use die-clean
   ]
 end
@@ -1930,7 +1968,7 @@ end
 ;removes also visual effects together with turtle and kill turtle
 to die-clean
 
-  ask self[
+
     let myteam team
     let myflag one-of flags with [team = myteam]
     let enemyflag one-of flags with [team != myteam]
@@ -1950,24 +1988,30 @@ to die-clean
 ;      set i i + 1
 ;    ]
     
+;ask links [
+;die]
+    
         if is-captain? self [
+         
           if count turtles-here > 1 [
             ask enemyflag [
               if status = "captured"[
                 set status "in-base"
-                ifelse team = 1[
-                  setxy 0 15
-                ][
-                setxy 0 -15 
-                ]
+;                ifelse team = 1[
+;                  setxy 0 15
+;                ][
+;                setxy 0 -15 
+;                ]
               ]
             ]  
             
-            ;;captain is priority release everyone from their tasks
+            ;captain is priority release everyone from their tasks
             
-            ask other turtles with [team = myteam][
-             set task-to-do "none" 
-            ]
+            
+          ]
+          
+          ask other turtles with [team = myteam][
+            set task-to-do "none" 
           ]
           
      show "captain is dead" 
@@ -1990,10 +2034,11 @@ to die-clean
     if not is-flag? self[        
     die
     ]
-  ]
+  
 end
 
 to normal-setup
+    ;clear-all
   setup
 end
 
@@ -2022,11 +2067,13 @@ to set-teamcolor
 end
 
 to cnet-start
+
   set-teamcolor
   agent-loop-flags
+  agent-loop-captain
   agent-loop-def
   agent-loop-bg
-  agent-loop-captain
+  
   agent-loop-freeagent
   tick
     if (end-game = true)
@@ -2174,7 +2221,7 @@ INPUTBOX
 176
 88
 ciclos
-2
+100
 1
 0
 Number
