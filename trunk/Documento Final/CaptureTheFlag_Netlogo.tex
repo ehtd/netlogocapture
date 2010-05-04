@@ -1,0 +1,1168 @@
+
+%% bare_jrnl.tex
+%% V1.3
+%% 2007/01/11
+%% by Michael Shell
+%% see http://www.michaelshell.org/
+%% for current contact information.
+%%
+%% This is a skeleton file demonstrating the use of IEEEtran.cls
+%% (requires IEEEtran.cls version 1.7 or later) with an IEEE journal paper.
+%%
+%% Support sites:
+%% http://www.michaelshell.org/tex/ieeetran/
+%% http://www.ctan.org/tex-archive/macros/latex/contrib/IEEEtran/
+%% and
+%% http://www.ieee.org/
+
+
+
+% *** Authors should verify (and, if needed, correct) their LaTeX system  ***
+% *** with the testflow diagnostic prior to trusting their LaTeX platform ***
+% *** with production work. IEEE's font choices can trigger bugs that do  ***
+% *** not appear when using other class files.                            ***
+% The testflow support page is at:
+% http://www.michaelshell.org/tex/testflow/
+
+
+%%*************************************************************************
+%% Legal Notice:
+%% This code is offered as-is without any warranty either expressed or
+%% implied; without even the implied warranty of MERCHANTABILITY or
+%% FITNESS FOR A PARTICULAR PURPOSE! 
+%% User assumes all risk.
+%% In no event shall IEEE or any contributor to this code be liable for
+%% any damages or losses, including, but not limited to, incidental,
+%% consequential, or any other damages, resulting from the use or misuse
+%% of any information contained here.
+%%
+%% All comments are the opinions of their respective authors and are not
+%% necessarily endorsed by the IEEE.
+%%
+%% This work is distributed under the LaTeX Project Public License (LPPL)
+%% ( http://www.latex-project.org/ ) version 1.3, and may be freely used,
+%% distributed and modified. A copy of the LPPL, version 1.3, is included
+%% in the base LaTeX documentation of all distributions of LaTeX released
+%% 2003/12/01 or later.
+%% Retain all contribution notices and credits.
+%% ** Modified files should be clearly indicated as such, including  **
+%% ** renaming them and changing author support contact information. **
+%%
+%% File list of work: IEEEtran.cls, IEEEtran_HOWTO.pdf, bare_adv.tex,
+%%                    bare_conf.tex, bare_jrnl.tex, bare_jrnl_compsoc.tex
+%%*************************************************************************
+
+% Note that the a4paper option is mainly intended so that authors in
+% countries using A4 can easily print to A4 and see how their papers will
+% look in print - the typesetting of the document will not typically be
+% affected with changes in paper size (but the bottom and side margins will).
+% Use the testflow package mentioned above to verify correct handling of
+% both paper sizes by the user's LaTeX system.
+%
+% Also note that the "draftcls" or "draftclsnofoot", not "draft", option
+% should be used if it is desired that the figures are to be displayed in
+% draft mode.
+%
+\documentclass[journal]{IEEEtran}
+%
+% If IEEEtran.cls has not been installed into the LaTeX system files,
+% manually specify the path to it like:
+% \documentclass[journal]{../sty/IEEEtran}
+
+
+
+
+
+% Some very useful LaTeX packages include:
+% (uncomment the ones you want to load)
+
+
+% *** MISC UTILITY PACKAGES ***
+%
+%\usepackage{ifpdf}
+% Heiko Oberdiek's ifpdf.sty is very useful if you need conditional
+% compilation based on whether the output is pdf or dvi.
+% usage:
+% \ifpdf
+%   % pdf code
+% \else
+%   % dvi code
+% \fi
+% The latest version of ifpdf.sty can be obtained from:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/oberdiek/
+% Also, note that IEEEtran.cls V1.7 and later provides a builtin
+% \ifCLASSINFOpdf conditional that works the same way.
+% When switching from latex to pdflatex and vice-versa, the compiler may
+% have to be run twice to clear warning/error messages.
+
+
+
+
+
+
+% *** CITATION PACKAGES ***
+%
+%\usepackage{cite}
+% cite.sty was written by Donald Arseneau
+% V1.6 and later of IEEEtran pre-defines the format of the cite.sty package
+% \cite{} output to follow that of IEEE. Loading the cite package will
+% result in citation numbers being automatically sorted and properly
+% "compressed/ranged". e.g., [1], [9], [2], [7], [5], [6] without using
+% cite.sty will become [1], [2], [5]--[7], [9] using cite.sty. cite.sty's
+% \cite will automatically add leading space, if needed. Use cite.sty's
+% noadjust option (cite.sty V3.8 and later) if you want to turn this off.
+% cite.sty is already installed on most LaTeX systems. Be sure and use
+% version 4.0 (2003-05-27) and later if using hyperref.sty. cite.sty does
+% not currently provide for hyperlinked citations.
+% The latest version can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/cite/
+% The documentation is contained in the cite.sty file itself.
+
+
+
+
+
+
+% *** GRAPHICS RELATED PACKAGES ***
+%
+\ifCLASSINFOpdf
+   \usepackage[pdftex]{graphicx}
+  % declare the path(s) where your graphic files are
+   \graphicspath{{../pdf/}{../jpeg/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\else
+  % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
+  % will default to the driver specified in the system graphics.cfg if no
+  % driver is specified.
+   %\usepackage[dvips]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../eps/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.eps}
+\fi
+% graphicx was written by David Carlisle and Sebastian Rahtz. It is
+% required if you want graphics, photos, etc. graphicx.sty is already
+% installed on most LaTeX systems. The latest version and documentation can
+% be obtained at: 
+% http://www.ctan.org/tex-archive/macros/latex/required/graphics/
+% Another good source of documentation is "Using Imported Graphics in
+% LaTeX2e" by Keith Reckdahl which can be found as epslatex.ps or
+% epslatex.pdf at: http://www.ctan.org/tex-archive/info/
+%
+% latex, and pdflatex in dvi mode, support graphics in encapsulated
+% postscript (.eps) format. pdflatex in pdf mode supports graphics
+% in .pdf, .jpeg, .png and .mps (metapost) formats. Users should ensure
+% that all non-photo figures use a vector format (.eps, .pdf, .mps) and
+% not a bitmapped formats (.jpeg, .png). IEEE frowns on bitmapped formats
+% which can result in "jaggedy"/blurry rendering of lines and letters as
+% well as large increases in file sizes.
+%
+% You can find documentation about the pdfTeX application at:
+% http://www.tug.org/applications/pdftex
+
+
+
+
+
+% *** MATH PACKAGES ***
+%
+%\usepackage[cmex10]{amsmath}
+% A popular package from the American Mathematical Society that provides
+% many useful and powerful commands for dealing with mathematics. If using
+% it, be sure to load this package with the cmex10 option to ensure that
+% only type 1 fonts will utilized at all point sizes. Without this option,
+% it is possible that some math symbols, particularly those within
+% footnotes, will be rendered in bitmap form which will result in a
+% document that can not be IEEE Xplore compliant!
+%
+% Also, note that the amsmath package sets \interdisplaylinepenalty to 10000
+% thus preventing page breaks from occurring within multiline equations. Use:
+%\interdisplaylinepenalty=2500
+% after loading amsmath to restore such page breaks as IEEEtran.cls normally
+% does. amsmath.sty is already installed on most LaTeX systems. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/amslatex/math/
+
+
+
+
+
+% *** SPECIALIZED LIST PACKAGES ***
+%
+%\usepackage{algorithmic}
+% algorithmic.sty was written by Peter Williams and Rogerio Brito.
+% This package provides an algorithmic environment fo describing algorithms.
+% You can use the algorithmic environment in-text or within a figure
+% environment to provide for a floating algorithm. Do NOT use the algorithm
+% floating environment provided by algorithm.sty (by the same authors) or
+% algorithm2e.sty (by Christophe Fiorio) as IEEE does not use dedicated
+% algorithm float types and packages that provide these will not provide
+% correct IEEE style captions. The latest version and documentation of
+% algorithmic.sty can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithms/
+% There is also a support site at:
+% http://algorithms.berlios.de/index.html
+% Also of interest may be the (relatively newer and more customizable)
+% algorithmicx.sty package by Szasz Janos:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithmicx/
+
+
+
+
+% *** ALIGNMENT PACKAGES ***
+%
+%\usepackage{array}
+% Frank Mittelbach's and David Carlisle's array.sty patches and improves
+% the standard LaTeX2e array and tabular environments to provide better
+% appearance and additional user controls. As the default LaTeX2e table
+% generation code is lacking to the point of almost being broken with
+% respect to the quality of the end results, all users are strongly
+% advised to use an enhanced (at the very least that provided by array.sty)
+% set of table tools. array.sty is already installed on most systems. The
+% latest version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/tools/
+
+
+%\usepackage{mdwmath}
+%\usepackage{mdwtab}
+% Also highly recommended is Mark Wooding's extremely powerful MDW tools,
+% especially mdwmath.sty and mdwtab.sty which are used to format equations
+% and tables, respectively. The MDWtools set is already installed on most
+% LaTeX systems. The lastest version and documentation is available at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/mdwtools/
+
+
+% IEEEtran contains the IEEEeqnarray family of commands that can be used to
+% generate multiline equations as well as matrices, tables, etc., of high
+% quality.
+
+
+%\usepackage{eqparbox}
+% Also of notable interest is Scott Pakin's eqparbox package for creating
+% (automatically sized) equal width boxes - aka "natural width parboxes".
+% Available at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/eqparbox/
+
+
+
+
+
+% *** SUBFIGURE PACKAGES ***
+%\usepackage[tight,footnotesize]{subfigure}
+% subfigure.sty was written by Steven Douglas Cochran. This package makes it
+% easy to put subfigures in your figures. e.g., "Figure 1a and 1b". For IEEE
+% work, it is a good idea to load it with the tight package option to reduce
+% the amount of white space around the subfigures. subfigure.sty is already
+% installed on most LaTeX systems. The latest version and documentation can
+% be obtained at:
+% http://www.ctan.org/tex-archive/obsolete/macros/latex/contrib/subfigure/
+% subfigure.sty has been superceeded by subfig.sty.
+
+
+
+%\usepackage[caption=false]{caption}
+%\usepackage[font=footnotesize]{subfig}
+% subfig.sty, also written by Steven Douglas Cochran, is the modern
+% replacement for subfigure.sty. However, subfig.sty requires and
+% automatically loads Axel Sommerfeldt's caption.sty which will override
+% IEEEtran.cls handling of captions and this will result in nonIEEE style
+% figure/table captions. To prevent this problem, be sure and preload
+% caption.sty with its "caption=false" package option. This is will preserve
+% IEEEtran.cls handing of captions. Version 1.3 (2005/06/28) and later 
+% (recommended due to many improvements over 1.2) of subfig.sty supports
+% the caption=false option directly:
+%\usepackage[caption=false,font=footnotesize]{subfig}
+%
+% The latest version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/subfig/
+% The latest version and documentation of caption.sty can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/caption/
+
+
+
+
+% *** FLOAT PACKAGES ***
+%
+%\usepackage{fixltx2e}
+% fixltx2e, the successor to the earlier fix2col.sty, was written by
+% Frank Mittelbach and David Carlisle. This package corrects a few problems
+% in the LaTeX2e kernel, the most notable of which is that in current
+% LaTeX2e releases, the ordering of single and double column floats is not
+% guaranteed to be preserved. Thus, an unpatched LaTeX2e can allow a
+% single column figure to be placed prior to an earlier double column
+% figure. The latest version and documentation can be found at:
+% http://www.ctan.org/tex-archive/macros/latex/base/
+
+
+
+%\usepackage{stfloats}
+% stfloats.sty was written by Sigitas Tolusis. This package gives LaTeX2e
+% the ability to do double column floats at the bottom of the page as well
+% as the top. (e.g., "\begin{figure*}[!b]" is not normally possible in
+% LaTeX2e). It also provides a command:
+%\fnbelowfloat
+% to enable the placement of footnotes below bottom floats (the standard
+% LaTeX2e kernel puts them above bottom floats). This is an invasive package
+% which rewrites many portions of the LaTeX2e float routines. It may not work
+% with other packages that modify the LaTeX2e float routines. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/sttools/
+% Documentation is contained in the stfloats.sty comments as well as in the
+% presfull.pdf file. Do not use the stfloats baselinefloat ability as IEEE
+% does not allow \baselineskip to stretch. Authors submitting work to the
+% IEEE should note that IEEE rarely uses double column equations and
+% that authors should try to avoid such use. Do not be tempted to use the
+% cuted.sty or midfloat.sty packages (also by Sigitas Tolusis) as IEEE does
+% not format its papers in such ways.
+
+
+%\ifCLASSOPTIONcaptionsoff
+%  \usepackage[nomarkers]{endfloat}
+% \let\MYoriglatexcaption\caption
+% \renewcommand{\caption}[2][\relax]{\MYoriglatexcaption[#2]{#2}}
+%\fi
+% endfloat.sty was written by James Darrell McCauley and Jeff Goldberg.
+% This package may be useful when used in conjunction with IEEEtran.cls'
+% captionsoff option. Some IEEE journals/societies require that submissions
+% have lists of figures/tables at the end of the paper and that
+% figures/tables without any captions are placed on a page by themselves at
+% the end of the document. If needed, the draftcls IEEEtran class option or
+% \CLASSINPUTbaselinestretch interface can be used to increase the line
+% spacing as well. Be sure and use the nomarkers option of endfloat to
+% prevent endfloat from "marking" where the figures would have been placed
+% in the text. The two hack lines of code above are a slight modification of
+% that suggested by in the endfloat docs (section 8.3.1) to ensure that
+% the full captions always appear in the list of figures/tables - even if
+% the user used the short optional argument of \caption[]{}.
+% IEEE papers do not typically make use of \caption[]'s optional argument,
+% so this should not be an issue. A similar trick can be used to disable
+% captions of packages such as subfig.sty that lack options to turn off
+% the subcaptions:
+% For subfig.sty:
+% \let\MYorigsubfloat\subfloat
+% \renewcommand{\subfloat}[2][\relax]{\MYorigsubfloat[]{#2}}
+% For subfigure.sty:
+% \let\MYorigsubfigure\subfigure
+% \renewcommand{\subfigure}[2][\relax]{\MYorigsubfigure[]{#2}}
+% However, the above trick will not work if both optional arguments of
+% the \subfloat/subfig command are used. Furthermore, there needs to be a
+% description of each subfigure *somewhere* and endfloat does not add
+% subfigure captions to its list of figures. Thus, the best approach is to
+% avoid the use of subfigure captions (many IEEE journals avoid them anyway)
+% and instead reference/explain all the subfigures within the main caption.
+% The latest version of endfloat.sty and its documentation can obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/endfloat/
+%
+% The IEEEtran \ifCLASSOPTIONcaptionsoff conditional can also be used
+% later in the document, say, to conditionally put the References on a 
+% page by themselves.
+
+
+
+
+
+% *** PDF, URL AND HYPERLINK PACKAGES ***
+%
+%\usepackage{url}
+% url.sty was written by Donald Arseneau. It provides better support for
+% handling and breaking URLs. url.sty is already installed on most LaTeX
+% systems. The latest version can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/misc/
+% Read the url.sty source comments for usage information. Basically,
+% \url{my_url_here}.
+
+
+
+
+
+% *** Do not adjust lengths that control margins, column widths, etc. ***
+% *** Do not use packages that alter fonts (such as pslatex).         ***
+% There should be no need to do such things with IEEEtran.cls V1.6 and later.
+% (Unless specifically asked to do so by the journal or conference you plan
+% to submit to, of course. )
+
+
+% correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+\title{Multi-agent systems with BDI in Netlogo: Capture the flag simulation }
+%
+%
+% author names and IEEE memberships
+% note positions of commas and nonbreaking spaces ( ~ ) LaTeX will not break
+% a structure at a ~ so this keeps an author's name from being broken across
+% two lines.
+% use \thanks{} to gain access to the first footnote area
+% a separate \thanks must be used for each paragraph as LaTeX2e's \thanks
+% was not built to handle multiple paragraphs
+%
+
+\author{Ernesto Torres and Alan Torres}% <-this % stops a space
+
+
+% note the % following the last \IEEEmembership and also \thanks - 
+% these prevent an unwanted space from occurring between the last author name
+% and the end of the author line. i.e., if you had this:
+% 
+% \author{....lastname \thanks{...} \thanks{...} }
+%                     ^------------^------------^----Do not want these spaces!
+%
+% a space would be appended to the last name and could cause every name on that
+% line to be shifted left slightly. This is one of those "LaTeX things". For
+% instance, "\textbf{A} \textbf{B}" will typeset as "A B" not "AB". To get
+% "AB" then you have to do: "\textbf{A}\textbf{B}"
+% \thanks is no different in this regard, so shield the last } of each \thanks
+% that ends a line with a % and do not let a space in before the next \thanks.
+% Spaces after \IEEEmembership other than the last one are OK (and needed) as
+% you are supposed to have spaces between the names. For what it is worth,
+% this is a minor point as most people would not even notice if the said evil
+% space somehow managed to creep in.
+
+
+
+% The paper headers
+%\markboth{Journal of \LaTeX\ Class Files,~Vol.~6, No.~1, January~2007}%
+%{Shell \MakeLowercase{\textit{e: Bare Demo of IEEEtran.cls for Journals}
+% The only time the second header will appear is for the odd numbered pages
+% after the title page when using the twoside option.
+% 
+% *** Note that you probably will NOT want to include the author's ***
+% *** name in the headers of peer review papers.                   ***
+% You can use \ifCLASSOPTIONpeerreview for conditional compilation here if
+% you desire.
+
+
+
+
+% If you want to put a publisher's ID mark on the page you can do it like
+% this:
+%\IEEEpubid{0000--0000/00\$00.00~\copyright~2007 IEEE}
+% Remember, if you use this you must call \IEEEpubidadjcol in the second
+% column for its text to clear the IEEEpubid mark.
+
+
+
+% use for special paper notices
+%\IEEEspecialpapernotice{(Invited Paper)}
+
+
+
+
+% make the title area
+\maketitle
+
+
+\begin{abstract}
+%\boldmath
+
+Multiagent systems (MAS) are composed of several intelligent agents that interact with each other. MAS include problem solving
+that can be difficult for a single agent, also allowing decentralization. Each agent is at least partially autonomous. There are many
+MAS coordination techniques, in this paper we present the use of Contract-Net for task assignment. The system is modeled and
+simulated in NetLogo, a powerful multi-agent programmable modeling environment. \\
+The simulation consists in a capture the flagmodel that allows two teams to compete with each other. The red team implements 
+contract-net for task assignment such as captain assignment and flag defending. Green team is programmed only 
+with basic behaviors such as patrol and defend. Both teams implement primitive behaviors such as move and attack, also a 
+capture the flag behavior for each captain. \\
+Each agent in the model has beliefs based on their own environment observation, based on their beliefs they produce 
+intentions and select an action to commit to.
+
+\end{abstract}
+% IEEEtran.cls defaults to using nonbold math in the Abstract.
+% This preserves the distinction between vectors and scalars. However,
+% if the journal you are submitting to favors bold math in the abstract,
+% then you can use LaTeX's standard command \boldmath at the very start
+% of the abstract to achieve this. Many IEEE journals frown on math
+% in the abstract anyway.
+
+% Note that keywords are not normally used for peerreview papers.
+%\begin{IEEEkeywords}
+%IEEEtran, journal, \LaTeX, paper, template.
+%\end{IEEEkeywords}
+
+
+
+
+
+
+% For peer review papers, you can put extra information on the cover
+% page as needed:
+% \ifCLASSOPTIONpeerreview
+% \begin{center} \bfseries EDICS Category: 3-BBND \end{center}
+% \fi
+%
+% For peerreview papers, this IEEEtran command inserts a page break and
+% creates the second title. It will be ignored for other modes.
+\IEEEpeerreviewmaketitle
+
+
+
+\section{Introduction}
+% The very first letter is a 2 line initial drop letter followed
+% by the rest of the first word in caps.
+% 
+% form to use if the first word consists of a single letter:
+% \IEEEPARstart{A}{demo} file is ....
+% 
+% form to use if you need the single drop letter followed by
+% normal text (unknown if ever used by IEEE):
+% \IEEEPARstart{A}{}demo file is ....
+% 
+% Some journals put the first two words in caps:
+% \IEEEPARstart{T}{his demo} file is ....
+% 
+% Here we have the typical use of a "T" for an initial drop letter
+% and "HIS" in caps to complete the first word.
+\IEEEPARstart{T}{his} paper is intended to demonstrate the effectiveness of task assignment using contract-net. The 
+domain selected is a capture the flag simulation to make a graphical demonstration of two teams playing, in which
+only the red team implements coordination and the green teams follows only simple behaviors. Each agent is 
+responsible of keeping its own state of the world and committing to do an action.\\
+Contract-net was selected as the multi-agent coordination technique. This allows an agent to become a contractor
+ and to broadcast the task that needs helps with. Contract-net is used in two cases: when selecting assigning the role
+ of captain and when the red flag is asking for defenders.\\
+ For assigning the role of captain, the red flag broadcast the task and all freeagents send their own bid with their
+ offer. This allows to select the best agent that is nearest the enemy flag to minimize the travel time to enemy base.\\
+ For assigning the defenders, a "box" strategy is made. The flag makes a contract for each patch that needs defending
+ and it is assigned to the best bidder consisting in minimum distance.\\
+ This paper consist in the following sections: analysis and design, prototype, experiments and results, conclusion
+ and references.\\
+ Analysis and design covers the system organization, roles model, protocols used, agent model and acquaintance 
+ model.\\
+ Prototype section describes the model in Netlogo, including how to run the simulation, user interface description.
+ This information can also be found embedded in the nlogo file in the Information section.\\
+ Experiments and results presents the experimental data that is obtained by executing the model. It demonstrate 
+ the advantage a coordinated team has against a basic behavior team.\\
+ Conclusions show lessons learned and also includes observations.
+ 
+% You must have at least 2 lines in the paragraph with the drop letter
+% (should never be an issue)
+
+
+%\hfill mds
+ 
+\hfill May 5, 2010
+
+\section{Analysis and design}
+
+\begin{enumerate}
+  \item System Organization
+  
+  \begin{itemize}
+  \item The environment is discrete, sequential, dynamic, deterministic, fully observable and multi-agent. 
+  Meaning that all the agents positions are known at all time.There will be two teams with a defined number of players and there will be one flag agent for each player. Agents can only communicate with other agents on the same team.
+
+\end{itemize}
+  \item Roles Model
+  
+  \begin{itemize}
+  \item 
+  	\textbf{Name:} Flag
+	  \begin{itemize}
+ 		 \item Description: Item for each team		  \item Protocols:
+			\begin{itemize}
+			\item Update beliefs
+		 	 \item Broadcast task
+			 \item Assign captain
+			 \item Assign defenders
+			 \item Assign bodyguards
+			\end{itemize}
+		\item Activities:			\begin{itemize}
+			\item Update intentions
+		 	 \item Win
+		 	 \item Lose
+			\end{itemize}		\item Responsibilities:
+			\begin{itemize}			\item Liveness: 		 	       Flag = \\
+			(Update beliefs $\cdot$ Update intentions $| $ [Broadcast task] $|$
+			[Assign captain] $|$ [Assign defenders] $| $
+			[Assign bodyguards] )$^\omega | Win | Lose$			\item Safety: \\		  	  -    Do not allow moves after Lose $|$ Win
+			\item Permissions:\\			\textbf{Change} \\
+			Status        //Indicate if is captured or in base
+			\\		                Position    //Indicates position on the map			\end{itemize}
+		\end{itemize}	
+  \item 
+  \textbf{Name:} Captain
+	  \begin{itemize}
+ 		 \item Description: Head of the team and in charge of assigning the roles. Capture opponentÕs flag and take it to base.		  \item Protocols:
+			\begin{itemize}
+			\item Update beliefs
+		 	 \item Capture flag
+			\end{itemize}
+		\item Activities:			\begin{itemize}
+			\item Update intentions
+		 	 \item Move
+			 \item Die
+			\end{itemize}		\item Responsibilities:
+			\begin{itemize}			\item Liveness: 		 	       Captain = \\
+			(Update beliefs $\cdot$ Update intentions $| $ [Move]  $|$ [Capture flag] )$^\omega | Die$			\item Safety: \\		  	   - PlayerPosition must be unique and other player cannot be in the same PlayerPosition.\\   			 - MyPosition can change only 1 step in any direction\\    			- No valid moves for this player after death.\\
+			\item Permissions:\\			\textbf{Reads}    \\
+			   PlayerPosition         // gets x,y of desired player \\ 		               PlayerLifeLevel        // gets life level of desired player\\			\\			\textbf{Changes }  \\
+			        MyPosition(x,y)       // Position of the agent in the map\\        				            MyLife                    // Updates current life level\\          			          OpponentFlagStatus                   // Update if captain has flag or not			\end{itemize}
+		\end{itemize}	
+  
+  \item 
+  
+    \textbf{Name:} Flag defender
+	  \begin{itemize}
+ 		 \item Description: Make sure the team's flag is not captured		  \item Protocols:
+			\begin{itemize}
+			\item Update beliefs
+		 	 \item Attack
+			 \item Patrol
+			 \item Defend
+			 \item Change role
+			\end{itemize}
+		\item Activities:			\begin{itemize}
+			\item Update intentions
+		 	 \item Move
+			 \item Die
+			\end{itemize}		\item Responsibilities:
+			\begin{itemize}			\item Liveness: 		 	       Flag defender = \\
+			(Update beliefs $\cdot$ Update intentions $| $ [Change role] $| $ [Move]  $|$ [Patrol] $|$ [Defend] )$^\omega | Die$			\item Safety: \\		  	   - PlayerPosition must be unique and other player cannot be in the same PlayerPosition.\\   			 - MyPosition can change only 1 step in any direction\\
+			- Attack only one enemy at a time at patch ahead\\    			- No valid moves for this player after death.\\
+			\item Permissions:\\			\textbf{Reads}    \\
+			   PlayerPosition         // gets x,y of desired player \\ 		               PlayerLifeLevel        // gets life level of desired player\\			\\			\textbf{Changes }  \\
+			        MyPosition(x,y)       // Position of the agent in the map\\        				            MyLife                    // Updates current life level\\          			          OpponentFlagStatus                   // Update if captain has flag or not			\end{itemize}
+		\end{itemize}	
+		
+\item
+    \textbf{Name:} Bodyguards
+	  \begin{itemize}
+ 		 \item Description: Make sure the captain captures opponent's flag and return safely to base.		  \item Protocols:
+			\begin{itemize}
+			\item Update beliefs
+		 	 \item Attack
+			 \item Patrol
+			 \item Defend
+			 \item Change role
+			\end{itemize}
+		\item Activities:			\begin{itemize}
+			\item Update intentions
+		 	 \item Move
+			 \item Die
+			\end{itemize}		\item Responsibilities:
+			\begin{itemize}			\item Liveness: 		 	       Bodyguards = \\
+			(Update beliefs $\cdot$ Update intentions $| $[Change Role] $|$ [Move]  $|$ [Patrol] $|$ [Defend] )$^\omega | Die$			\item Safety: \\		  	   - PlayerPosition must be unique and other player cannot be in the same PlayerPosition.\\   			 - MyPosition can change only 1 step in any direction\\
+			- Attack only one enemy at a time at patch ahead\\    			- No valid moves for this player after death.\\
+			\item Permissions:\\			\textbf{Reads}    \\
+			   PlayerPosition         // gets x,y of desired player \\ 		               PlayerLifeLevel        // gets life level of desired player\\			\\			\textbf{Changes }  \\
+			        MyPosition(x,y)       // Position of the agent in the map\\        				            MyLife                    // Updates current life level\\          			          OpponentFlagStatus                   // Update if captain has flag or not			\end{itemize}
+		\end{itemize}	
+
+\item
+
+    \textbf{Name:} Freeagent
+	  \begin{itemize}
+ 		 \item Description: Initial role for non-flag agents		  \item Protocols:
+			\begin{itemize}
+			\item Bid
+			\item Change role
+			\end{itemize}
+		\item Activities:			\begin{itemize}
+			\item Get in random position
+			\end{itemize}		\item Responsibilities:
+			\begin{itemize}			\item Liveness: 		 	       Freeagent = \\
+			(Get in random position+ $\cdot$ Bid+ $\cdot$ Change role)			\item Safety: \\		  	   - Starting position is random, but will respect only one agent per patch and each team can only sprout in their side of the field
+			\item Permissions:\\			\textbf{Reads}    \\
+			   Task //Task offered by flag			\\			\textbf{Changes }  \\
+			        MyOffer(x,y)       // offer for bid\\			\end{itemize}
+		\end{itemize}	
+		
+\end{itemize}
+  \item Interaction Model, protocol definitions.
+    
+\begin{itemize}
+\item   Protocol: Attack
+	   \begin{itemize}
+	\item Purpose: damage a player	\item Initiator: Attacker	\item Responder: Victim 	\item Inputs: Position (x,y) of the victim	\item Outputs: Victim's new reduced life level	\item Processing: Victim life level - attack
+	\end{itemize}
+	
+\item   Protocol: CaptureFlag
+	   \begin{itemize}
+	\item Purpose: Capture flag	\item Initiator: Captain	\item Responder: Opponent's Flag	\item Inputs: Position (x,y) of the captain	\item Outputs: Flag status changed 	\item Processing: Check that the captains position is the same as the opponent's flag position
+	\end{itemize}
+	
+\item   Protocol: Bid
+	   \begin{itemize}
+	\item Purpose: Make offer for a task	\item Initiator: Flag	\item Responder: Freeagent	\item Inputs: task	\item Outputs: offer 	\item Processing: Make offer according to task requirements
+	\end{itemize}
+	
+\item   Protocol: Change role
+	   \begin{itemize}
+	\item Purpose: Change to another role (captain, bodyguard or flagdefender)	\item Initiator: Flag	\item Responder: Any agent	\item Inputs: role	\item Outputs: Agent changes role 	\item Processing: Flag requirements for roles and  if captain dies, a new one needs to be selected
+	\end{itemize}
+
+\item   Protocol: Update beliefs
+	   \begin{itemize}
+	\item Purpose: Updates how agent sees the world	\item Initiator: Each agent	\item Responder: Any agent involved in perception	\item Inputs: Percept	\item Outputs: belief updated	\item Processing: Updates belifs according to percepts
+	\end{itemize}
+	
+\item   Protocol: Patrol
+	   \begin{itemize}
+	\item Purpose: Patrol around captain or flag	\item Initiator:  Flags or captains	\item Responder: Flagdefenders or Bodyguards	\item Inputs: Flag or captain position	\item Outputs: Valid patches to move to	\item Processing: Radius to flag or captain
+	\end{itemize}
+	
+\item   Protocol: Defend
+	   \begin{itemize}
+	\item Purpose: Defends captain or flag	\item Initiator:  Flags or captains	\item Responder: Flagdefenders or Bodyguards	\item Inputs: Flag or captain enemies near	\item Outputs: list of enemies near flag or captain	\item Processing: Enemies in a Radius to flag or captain
+	\end{itemize}
+
+\item   Protocol: Broadcast task
+	   \begin{itemize}
+	\item Purpose: Offer a task 	\item Initiator:  Flags	\item Responder: Freeagents or Flagdefenders or Bodyguards	\item Inputs: task	\item Outputs: list of offers	\item Processing: Generate list according to bidders
+	\end{itemize}
+	
+\item   Protocol: Assign captain
+	   \begin{itemize}
+	\item Purpose: Assign captain	\item Initiator:  Flags	\item Responder: Freeagents or Flagdefenders or Bodyguards	\item Inputs: No captain	\item Outputs: new captain	\item Processing: Calculate best agent for task
+	\end{itemize}
+	
+\item   Protocol: Assign defenders
+	   \begin{itemize}
+	\item Purpose: Assign defenders	\item Initiator:  Flags	\item Responder: Freeagents	\item Inputs: No defenders	\item Outputs: new defenders	\item Processing: Calculate best agents for task
+	\end{itemize}
+	
+\item   Protocol: Assign bodyguards
+	   \begin{itemize}
+	\item Purpose: Assign bodyguards	\item Initiator:  Flags	\item Responder: Freeagents	\item Inputs: No bodyguards	\item Outputs: new bodyguards	\item Processing: Calculate best agents for task
+	\end{itemize}
+	
+\end{itemize}
+
+  
+  
+  \item Activities description.
+  
+  \begin{itemize}
+\item Activity: Move
+	   \begin{itemize}
+	  \item Description: Change player's current position
+	\end{itemize}
+ \item Activity: Die
+  	   \begin{itemize} 	 \item Description: Remove player when life level reaches zero.
+	\end{itemize}
+\item Activity: Win
+  	   \begin{itemize}
+ 	  	 \item Description: End game with positive results
+	\end{itemize}
+\item Activity: Lose 
+  	   \begin{itemize}	  \item Description: End game with negative results
+	\end{itemize}
+\item Activity: Get in random position 
+  	   \begin{itemize}	  \item Description: End game with negative results
+	\end{itemize}
+\item Activity: Update intentions
+  	   \begin{itemize}	  \item Description: Update internal intentions according to beliefs
+	\end{itemize}	
+\end{itemize}
+  
+  
+   \item Agent Model
+   
+    \begin{itemize}
+    \item Captain: 1 per team  \item Flag: 1 per team  \item Flag defender: +  \item Bodyguards: +
+\end{itemize}
+
+  \item Acquintance Model
+  \\
+  See figure \#\ref{fig:diagram}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.5in]{diagram.png}
+% where an .eps filename suffix will be assumed under latex, 
+% and a .pdf suffix will be assumed for pdflatex; or what has been declared
+% via \DeclareGraphicsExtensions.
+\caption{Acquintance Model}
+\label{fig:diagram}
+\end{figure}
+
+\end{enumerate}
+
+\section{Prototype}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.5in]{model0.png}
+% where an .eps filename suffix will be assumed under latex, 
+% and a .pdf suffix will be assumed for pdflatex; or what has been declared
+% via \DeclareGraphicsExtensions.
+\caption{Model setup}
+\label{fig:setup}
+\end{figure}
+
+\subsection{Description}
+This is a capture the flag simulation between two teams, red vs green (see figure \#\ref{fig:setup}). The objetive of this simulation is to prove the advantajes of having multiagent coordination. Red team implements contract-net to assign roles for captain, bodyguards and for flagdefenders for making  a "box" cover for their flag. Green team has only basic behaviors such as patrol and defend. Green also has the advantaje of inmediatelly moving, while Red takes some time for assigning roles.
+
+There are five role types: freeagents, flags, captains, bodyguards and flagdefenders.
+\begin{itemize}
+  \item Flags: 
+One flag for each team and has its position fixed at game start. Has status ("captured" or "in-base"). Flags decide what roles should be assigned to the freeagents. 
+
+  \item Freeagents: 
+At the beginning of the game all agents start as freeagents, meaning that any role can be assigned to them. 
+
+  \item Captains: 
+The only agent capable of capturing enemy flag. It Can't attack other agents.
+
+  \item Bodyguards: 
+Protect captain from enemies by patrolling around captain and attacking any enemy near their captain.
+
+  \item Flagdefenders: 
+Protect the flag and attack all approaching enemies.
+\end{itemize}
+Both teams have basic capabilities such as: move and attack.
+
+\subsection{Agents}
+
+42 total agents:
+\begin{itemize}
+  \item 21 per team
+  \begin{itemize}
+  \item 1 flag
+  \item 20 freeagents
+
+\end{itemize}
+\end{itemize}
+
+\subsection{Game rules}
+
+\begin{itemize}
+\item  When enemy flag is captured by a captain and returned to their own base the game ends.
+\item  Only captain can capture flag. A new captain is assigned if he dies.
+\item  Only bodyguards and flagdefenders can attack, but both roles can attack and kill captains.
+\item If a captain carrying a flag is killed, the flag returns to its base automatically.
+\item  It is not necessary to have own flag in base to end the game. This meaning that the only and principal goal is to retrieve enemy flag.
+\end{itemize}
+
+\subsection{How it works}
+
+The execution is a loop that includes the following:
+\begin{itemize}
+  \item   agent-loop-flags : Roles are assigned here. Also contracts are broadcasted by the flags.
+   \item  agent-loop-captain : Captain actions for capturing flag and returning to base
+   \item  agent-loop-def : Defending, patrolling and formations.
+   \item  agent-loop-bg: Patrolling and Captain protection.
+  \item   agent-loop-freeagent : Freeagents waiting for role to be assigned
+\end{itemize}
+
+\subsection{Roles assignment}
+
+\begin{enumerate}
+  \item Red Team:
+  \begin{itemize}
+  \item Captain: Nearest agent to flag with higher life
+  \item Flagdefenders: 7 freeagents to surround flag
+  \item Bodyguards: The rest of the freeagents
+\end{itemize}
+
+  \item
+  Green Team:
+\begin{itemize}
+  \item Captain: Random agent
+  \item Flagdefenders : 10 random agents
+  \item Bodyguards: The rest of the freeagents
+\end{itemize}
+
+\end{enumerate}
+
+\subsection{How to use it}
+
+Type the number of times you want to execute the model in to the Loops text-box. Press start and the simulation will begin.
+
+Two monitors are used for displaying the number of agents in each team during execution. This is only useful when executing only one loop. 
+
+When executing more than one loop, the plot to the right of the model is recommended, as it shows graphically the agents that remain alive at the end of the cycle.
+
+Game Time is also a plot what displays the ticks spent for each game round.
+
+Victories are shown in monitors to the right of the model. Each green or red win is counted and displayed.
+
+
+\subsection{Extending the model}
+
+At the moment attack coordination was not implemented, only flag defending and roles assignment. Future work may include implementing another type of coordination to allow bodyguard block and attack enemies more efficiently.
+
+
+\subsection{BDI agents}
+
+The major effort was to use the BDI model in Netlogo, for this, some research was made and functions were created based in the documents: Agents with Beliefs and Intentions in Netlogo\cite{bib1} and Symbolic, intentional and deliberative agents\cite{bib2}.
+
+Functions created include:
+\begin{itemize}
+  \item add-intention [new-intention]
+  \item add-belief [new-belief]
+  \item clean-beliefs
+  \item i-have-intention? [intention]
+  \item i-have-belief? [belief]
+\end{itemize}
+
+
+\subsection{Agent control loop}
+
+while true 
+\begin{enumerate}
+  \item observe the world;
+  \item update internal world model;
+  \item deliberate about what intention to achieve next;
+  \item use means-ends reasoning to get a plan for the intention;
+  \item execute the plan
+  \end{enumerate}
+end while
+
+\subsection{Contract-net}
+
+In this model contract-net is used for task assignment. For this task some functions were created to simulate the exact behavior of contract-net. 
+
+This includes: Broadcast, Bidding and Awarding.
+
+Broadcasting sends request in a message package: 
+[task requirement1 reference1 requirement2 reference2 contractor]
+
+Bidders receive task and bid by sending their offers.
+
+Contractor then picks the higher bid and awards it with the contract.
+
+
+\section{Experiments and results}
+
+After the model was completed we created a special start that is able to run any number of matches. This allows to view the behavior of both team
+in a large number of matches. We run 100 matches with red team winning 94 while green winning only 6 matches, this meaning that coordinated
+team won 94\% of the times. Game time was stable 
+at 75-80 ticks approximately with exception of a few matches with peaks around 150. The survivor count of both oscillates around 15 survivors 
+per time, but the red team getting the lowest count per match. We should remember that the main goal of each match is to capture the enemy's
+flag. Results are displayed in figure \#\ref{fig:results}.
+\\
+Another set of simulations were executed, this time 1000 matches were played. Red winned 916 and green 84. Red win percentage is still
+above 90\%. Here since a large number of matches were played we can observe that there were some peaks in game time, reaching about
+495 ticks. In that case more ticks were required since many agents died when carrying the flag and the needed to return again for the flag. 
+Results are displayed in figure \#\ref{fig:results1000}.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.5in]{results.png}
+% where an .eps filename suffix will be assumed under latex, 
+% and a .pdf suffix will be assumed for pdflatex; or what has been declared
+% via \DeclareGraphicsExtensions.
+\caption{100 matches result}
+\label{fig:results}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.5in]{results1000.png}
+% where an .eps filename suffix will be assumed under latex, 
+% and a .pdf suffix will be assumed for pdflatex; or what has been declared
+% via \DeclareGraphicsExtensions.
+\caption{1000 matches result}
+\label{fig:results1000}
+\end{figure}
+
+
+% An example of a floating figure using the graphicx package.
+% Note that \label must occur AFTER (or within) \caption.
+% For figures, \caption should occur after the \includegraphics.
+% Note that IEEEtran v1.7 and later has special internal code that
+% is designed to preserve the operation of \label within \caption
+% even when the captionsoff option is in effect. However, because
+% of issues like this, it may be the safest practice to put all your
+% \label just after \caption rather than within \caption{}.
+%
+% Reminder: the "draftcls" or "draftclsnofoot", not "draft", class
+% option should be used if it is desired that the figures are to be
+% displayed while in draft mode.
+%
+%\begin{figure}[!t]
+%\centering
+%\includegraphics[width=2.5in]{myfigure}
+% where an .eps filename suffix will be assumed under latex, 
+% and a .pdf suffix will be assumed for pdflatex; or what has been declared
+% via \DeclareGraphicsExtensions.
+%\caption{Simulation Results}
+%\label{fig_sim}
+%\end{figure}
+
+% Note that IEEE typically puts floats only at the top, even when this
+% results in a large percentage of a column being occupied by floats.
+
+
+% An example of a double column floating figure using two subfigures.
+% (The subfig.sty package must be loaded for this to work.)
+% The subfigure \label commands are set within each subfloat command, the
+% \label for the overall figure must come after \caption.
+% \hfil must be used as a separator to get equal spacing.
+% The subfigure.sty package works much the same way, except \subfigure is
+% used instead of \subfloat.
+%
+%\begin{figure*}[!t]
+%\centerline{\subfloat[Case I]\includegraphics[width=2.5in]{subfigcase1}%
+%\label{fig_first_case}}
+%\hfil
+%\subfloat[Case II]{\includegraphics[width=2.5in]{subfigcase2}%
+%\label{fig_second_case}}}
+%\caption{Simulation results}
+%\label{fig_sim}
+%\end{figure*}
+%
+% Note that often IEEE papers with subfigures do not employ subfigure
+% captions (using the optional argument to \subfloat), but instead will
+% reference/describe all of them (a), (b), etc., within the main caption.
+
+
+% An example of a floating table. Note that, for IEEE style tables, the 
+% \caption command should come BEFORE the table. Table text will default to
+% \footnotesize as IEEE normally uses this smaller font for tables.
+% The \label must come after \caption as always.
+%
+%\begin{table}[!t]
+%% increase table row spacing, adjust to taste
+%\renewcommand{\arraystretch}{1.3}
+% if using array.sty, it might be a good idea to tweak the value of
+% \extrarowheight as needed to properly center the text within the cells
+%\caption{An Example of a Table}
+%\label{table_example}
+%\centering
+%% Some packages, such as MDW tools, offer better commands for making tables
+%% than the plain LaTeX2e tabular which is used here.
+%\begin{tabular}{|c||c|}
+%\hline
+%One & Two\\
+%\hline
+%Three & Four\\
+%\hline
+%\end{tabular}
+%\end{table}
+
+
+% Note that IEEE does not put floats in the very first column - or typically
+% anywhere on the first page for that matter. Also, in-text middle ("here")
+% positioning is not used. Most IEEE journals use top floats exclusively.
+% Note that, LaTeX2e, unlike IEEE journals, places footnotes above bottom
+% floats. This can be corrected via the \fnbelowfloat command of the
+% stfloats package.
+
+
+
+\section{Conclusion}
+This paper proves that a coordinated team gets better results when competing against a non-coordinated team with basic behaviors. Contract-net was used as task assignment, and has proven effective.  Although coordination only was used for role
+assignment and "box" defending, it proved it is good enough to win more than 90\% of matches. While the simulation results are more than satisfactory a lot of work can still be done. This simulation tried to be simple, but still covers the major roles for a capture the flag game. We are pleased with the results obtained during the programming of this model during the course of Multi-agent systems, unfortunately the game is very complex and a lot of work can still be done. Also the duration of the course is not time enough to take full 
+advantage of the model.
+\\
+This simulation can be upgraded by adding attack coordination and will surely reach even better results. This may be implemented in future work and can be used as a thesis topic to make the simulation more complex. Considering  variables such as variable damage, obstacles  and fog of war can really make the game more realistic and challenging.
+
+
+
+
+
+% if have a single appendix:
+%\appendix[Proof of the Zonklar Equations]
+% or
+%\appendix  % for no appendix heading
+% do not use \section anymore after \appendix, only \section*
+% is possibly needed
+
+% use appendices with more than one appendix
+% then use \section to start each appendix
+% you must declare a \section before using any
+% \subsection or using \label (\appendices by itself
+% starts a section numbered zero.)
+%
+
+
+% use section* for acknowledgement
+%\section*{Acknowledgment}
+
+
+
+
+% Can use something like this to put references on a page
+% by themselves when using endfloat and the captionsoff option.
+\ifCLASSOPTIONcaptionsoff
+  \newpage
+\fi
+
+
+
+% trigger a \newpage just before the given reference
+% number - used to balance the columns on the last page
+% adjust value as needed - may need to be readjusted if
+% the document is modified later
+%\IEEEtriggeratref{8}
+% The "triggered" command can be changed if desired:
+%\IEEEtriggercmd{\enlargethispage{-5in}}
+
+% references section
+
+% can use a bibliography generated by BibTeX as a .bbl file
+% BibTeX documentation can be easily obtained at:
+% http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
+% The IEEEtran BibTeX style support page is at:
+% http://www.michaelshell.org/tex/ieeetran/bibtex/
+%\bibliographystyle{IEEEtran}
+% argument is your BibTeX string definitions and bibliography database(s)
+%\bibliography{IEEEabrv,../bib/paper}
+%
+% <OR> manually copy in the resultant .bbl file
+% set second argument of \begin to the number of references
+% (used to reserve space for the reference number labels box)
+\begin{thebibliography}{1}
+
+\bibitem{bib1}
+Ilias Sakellariou. \emph{Agents with Beliefs and Intentions in Netlogo}. March 2004, Updated March 2008
+\bibitem{bib2}
+Symbolic, intentional and deliberative agents PDF presentation in Multi-agent systems course
+
+\end{thebibliography}
+
+% biography section
+% 
+% If you have an EPS/PDF photo (graphicx package needed) extra braces are
+% needed around the contents of the optional argument to biography to prevent
+% the LaTeX parser from getting confused when it sees the complicated
+% \includegraphics command within an optional argument. (You could create
+% your own custom macro containing the \includegraphics command to make things
+% simpler here.)
+%\begin{biography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
+% or if you just want to reserve a space for a photo:
+
+%\begin{IEEEbiography}{Michael Shell}
+%Biography text here.
+%\end{IEEEbiography}
+
+% if you will not have a photo at all:
+%\begin{IEEEbiographynophoto}{John Doe}
+%Biography text here.
+%\end{IEEEbiographynophoto}
+
+% insert where needed to balance the two columns on the last page with
+% biographies
+%\newpage
+
+%\begin{IEEEbiographynophoto}{Jane Doe}
+%Biography text here.
+%\end{IEEEbiographynophoto}
+
+% You can push biographies down or up by placing
+% a \vfill before or after them. The appropriate
+% use of \vfill depends on what kind of text is
+% on the last page and whether or not the columns
+% are being equalized.
+
+%\vfill
+
+% Can be used to pull up biographies so that the bottom of the last one
+% is flush with the other column.
+%\enlargethispage{-5in}
+
+
+
+% that's all folks
+\end{document}
+
+
