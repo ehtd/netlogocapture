@@ -393,7 +393,7 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Multi-agent systems with BDI in Netlogo: Capture the flag simulation }
+\title{Capture the flag simulation in Netlogo using GAIA design methodology using BDI model  }
 %
 %
 % author names and IEEE memberships
@@ -466,13 +466,16 @@
 Multiagent systems (MAS) are composed of several intelligent agents that interact with each other. MAS include problem solving
 that can be difficult for a single agent, also allowing decentralization. Each agent is at least partially autonomous. There are many
 MAS coordination techniques, in this paper we present the use of Contract-Net for task assignment. The system is modeled and
-simulated in NetLogo, a powerful multi-agent programmable modeling environment. \\
-The simulation consists in a capture the flagmodel that allows two teams to compete with each other. The red team implements 
+simulated in NetLogo\cite{bib6}, a powerful multi-agent programmable modeling environment. \\
+The simulation consists in a capture the flag model that allows two teams to compete with each other. The red team implements 
 contract-net for task assignment such as captain assignment and flag defending. Green team is programmed only 
 with basic behaviors such as patrol and defend. Both teams implement primitive behaviors such as move and attack, also a 
 capture the flag behavior for each captain. \\
 Each agent in the model has beliefs based on their own environment observation, based on their beliefs they produce 
-intentions and select an action to commit to.
+intentions and select an action to commit to.\\
+For this simulation we used GAIA design methodology\cite{bib4} because it based in role interaction. We used the BDI model to design 
+a belief structure to allow each agent to decide which action is more appropiate. Agents generate intentions and commit to make one of
+them each cycle.
 
 \end{abstract}
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
@@ -527,6 +530,8 @@ responsible of keeping its own state of the world and committing to do an action
 Contract-net was selected as the multi-agent coordination technique. This allows an agent to become a contractor
  and to broadcast the task that needs helps with. Contract-net is used in two cases: when selecting assigning the role
  of captain and when the red flag is asking for defenders.\\
+ GAIA methodology and BDI model are used together to make a more robust multi-agent system. For extending GAIA methodology to 
+ use BDI model, extra activities and protocols are implemented for each agent. This will be explained further in the document.\\
  For assigning the role of captain, the red flag broadcast the task and all freeagents send their own bid with their
  offer. This allows to select the best agent that is nearest the enemy flag to minimize the travel time to enemy base.\\
  For assigning the defenders, a "box" strategy is made. The flag makes a contract for each patch that needs defending
@@ -549,14 +554,33 @@ Contract-net was selected as the multi-agent coordination technique. This allows
  
 \hfill May 5, 2010
 
-\section{Analysis and design}
 
+\section{GAIA and BDI}
+GAIA is a way of viewing multi-agent systems as a computational organization, identifying roles and their interaction. Each role has its own
+set of responsibilities, activities, protocols and permissions. To extend the methodology we used the BDI model to allow each agent
+to have their own sets of beliefs and intentions. Each agent is capable of updating their own beliefs according to how they see the world. Then they can
+create intentions according to their beliefs and commit to one intention each execution cycle. To allow this each agent is provided with a protocol named
+update beliefs in which they ask other agents for information in order to create intentions. Also an activity is provided, update intentions. After their beliefs are
+updated, each agent decides what intention can be generated according to the environment state. A limited number of intentions are allowed according to
+their roles. \\
+\\
+An example is the role flag defender:\\
+(Update beliefs $\cdot$ Update intentions $\cdot$ ( [Change role] $| $ [Move]  $|$ [Patrol] $|$ [Defend] ))$^\omega | Die$\\
+\\
+First it updates beliefs, then updates intentions and will decide to either change role, move, patrol or defend. This cycle will repeat until game ends or the agent dies.
+
+
+
+
+\section{Analysis and design}
+GAIA methodology\\
 \begin{enumerate}
   \item System Organization
   
   \begin{itemize}
   \item The environment is discrete, sequential, dynamic, deterministic, fully observable and multi-agent. 
-  Meaning that all the agents positions are known at all time.There will be two teams with a defined number of players and there will be one flag agent for each player. Agents can only communicate with other agents on the same team.
+  Meaning that all the agents positions are known at all time.
+There will be two teams with a defined number of players and there will be one flag agent for each player. Agents can only communicate with other agents on the same team.
 
 \end{itemize}
   \item Roles Model
@@ -565,7 +589,8 @@ Contract-net was selected as the multi-agent coordination technique. This allows
   \item 
   	\textbf{Name:} Flag
 	  \begin{itemize}
- 		 \item Description: Item for each team		  \item Protocols:
+ 		 \item Description: Item for each team
+		  \item Protocols:
 			\begin{itemize}
 			\item Update beliefs
 		 	 \item Broadcast task
@@ -573,44 +598,71 @@ Contract-net was selected as the multi-agent coordination technique. This allows
 			 \item Assign defenders
 			 \item Assign bodyguards
 			\end{itemize}
-		\item Activities:			\begin{itemize}
+		\item Activities:
+			\begin{itemize}
 			\item Update intentions
 		 	 \item Win
 		 	 \item Lose
-			\end{itemize}		\item Responsibilities:
-			\begin{itemize}			\item Liveness: 		 	       Flag = \\
-			(Update beliefs $\cdot$ Update intentions $| $ [Broadcast task] $|$
+			\end{itemize}
+		\item Responsibilities:
+			\begin{itemize}
+			\item Liveness: 
+		 	       Flag = \\
+			(Update beliefs $\cdot$ Update intentions $\cdot$ (  [Broadcast task] $|$
 			[Assign captain] $|$ [Assign defenders] $| $
-			[Assign bodyguards] )$^\omega | Win | Lose$			\item Safety: \\		  	  -    Do not allow moves after Lose $|$ Win
-			\item Permissions:\\			\textbf{Change} \\
+			[Assign bodyguards] ))$^\omega | Win | Lose$
+			\item Safety: \\
+		  	  -    Do not allow moves after Lose $|$ Win
+			\item Permissions:\\
+			\textbf{Change} \\
 			Status        //Indicate if is captured or in base
-			\\		                Position    //Indicates position on the map			\end{itemize}
+			\\
+		                Position    //Indicates position on the map
+			\end{itemize}
 		\end{itemize}	
   \item 
   \textbf{Name:} Captain
 	  \begin{itemize}
- 		 \item Description: Head of the team and in charge of assigning the roles. Capture opponent’s flag and take it to base.		  \item Protocols:
+ 		 \item Description: Head of the team and in charge of assigning the roles. Capture opponent’s flag and take it to base.
+		  \item Protocols:
 			\begin{itemize}
 			\item Update beliefs
 		 	 \item Capture flag
 			\end{itemize}
-		\item Activities:			\begin{itemize}
+		\item Activities:
+			\begin{itemize}
 			\item Update intentions
 		 	 \item Move
 			 \item Die
-			\end{itemize}		\item Responsibilities:
-			\begin{itemize}			\item Liveness: 		 	       Captain = \\
-			(Update beliefs $\cdot$ Update intentions $| $ [Move]  $|$ [Capture flag] )$^\omega | Die$			\item Safety: \\		  	   - PlayerPosition must be unique and other player cannot be in the same PlayerPosition.\\   			 - MyPosition can change only 1 step in any direction\\    			- No valid moves for this player after death.\\
-			\item Permissions:\\			\textbf{Reads}    \\
-			   PlayerPosition         // gets x,y of desired player \\ 		               PlayerLifeLevel        // gets life level of desired player\\			\\			\textbf{Changes }  \\
-			        MyPosition(x,y)       // Position of the agent in the map\\        				            MyLife                    // Updates current life level\\          			          OpponentFlagStatus                   // Update if captain has flag or not			\end{itemize}
+			\end{itemize}
+		\item Responsibilities:
+			\begin{itemize}
+			\item Liveness: 
+		 	       Captain = \\
+			(Update beliefs $\cdot$ Update intentions $\cdot$ (  [Move]  $|$ [Capture flag] ))$^\omega | Die$
+			\item Safety: \\
+		  	   - PlayerPosition must be unique and other player cannot be in the same PlayerPosition.\\
+   			 - MyPosition can change only 1 step in any direction\\
+    			- No valid moves for this player after death.\\
+			\item Permissions:\\
+			\textbf{Reads}    \\
+			   PlayerPosition         // gets x,y of desired player \\
+ 		               PlayerLifeLevel        // gets life level of desired player\\
+			\\
+			\textbf{Changes }  \\
+			        MyPosition(x,y)       // Position of the agent in the map\\
+        				            MyLife                    // Updates current life level\\
+          			          OpponentFlagStatus                   // Update if captain has flag or not
+
+			\end{itemize}
 		\end{itemize}	
   
   \item 
   
     \textbf{Name:} Flag defender
 	  \begin{itemize}
- 		 \item Description: Make sure the team's flag is not captured		  \item Protocols:
+ 		 \item Description: Make sure the team's flag is not captured
+		  \item Protocols:
 			\begin{itemize}
 			\item Update beliefs
 		 	 \item Attack
@@ -618,23 +670,40 @@ Contract-net was selected as the multi-agent coordination technique. This allows
 			 \item Defend
 			 \item Change role
 			\end{itemize}
-		\item Activities:			\begin{itemize}
+		\item Activities:
+			\begin{itemize}
 			\item Update intentions
 		 	 \item Move
 			 \item Die
-			\end{itemize}		\item Responsibilities:
-			\begin{itemize}			\item Liveness: 		 	       Flag defender = \\
-			(Update beliefs $\cdot$ Update intentions $| $ [Change role] $| $ [Move]  $|$ [Patrol] $|$ [Defend] )$^\omega | Die$			\item Safety: \\		  	   - PlayerPosition must be unique and other player cannot be in the same PlayerPosition.\\   			 - MyPosition can change only 1 step in any direction\\
-			- Attack only one enemy at a time at patch ahead\\    			- No valid moves for this player after death.\\
-			\item Permissions:\\			\textbf{Reads}    \\
-			   PlayerPosition         // gets x,y of desired player \\ 		               PlayerLifeLevel        // gets life level of desired player\\			\\			\textbf{Changes }  \\
-			        MyPosition(x,y)       // Position of the agent in the map\\        				            MyLife                    // Updates current life level\\          			          OpponentFlagStatus                   // Update if captain has flag or not			\end{itemize}
+			\end{itemize}
+		\item Responsibilities:
+			\begin{itemize}
+			\item Liveness: 
+		 	       Flag defender = \\
+			(Update beliefs $\cdot$ Update intentions $\cdot$ ( [Change role] $| $ [Move]  $|$ [Patrol] $|$ [Defend] ))$^\omega | Die$
+			\item Safety: \\
+		  	   - PlayerPosition must be unique and other player cannot be in the same PlayerPosition.\\
+   			 - MyPosition can change only 1 step in any direction\\
+			- Attack only one enemy at a time at patch ahead\\
+    			- No valid moves for this player after death.\\
+			\item Permissions:\\
+			\textbf{Reads}    \\
+			   PlayerPosition         // gets x,y of desired player \\
+ 		               PlayerLifeLevel        // gets life level of desired player\\
+			\\
+			\textbf{Changes }  \\
+			        MyPosition(x,y)       // Position of the agent in the map\\
+        				            MyLife                    // Updates current life level\\
+          			          OpponentFlagStatus                   // Update if captain has flag or not
+
+			\end{itemize}
 		\end{itemize}	
 		
 \item
     \textbf{Name:} Bodyguards
 	  \begin{itemize}
- 		 \item Description: Make sure the captain captures opponent's flag and return safely to base.		  \item Protocols:
+ 		 \item Description: Make sure the captain captures opponent's flag and return safely to base.
+		  \item Protocols:
 			\begin{itemize}
 			\item Update beliefs
 		 	 \item Attack
@@ -642,36 +711,63 @@ Contract-net was selected as the multi-agent coordination technique. This allows
 			 \item Defend
 			 \item Change role
 			\end{itemize}
-		\item Activities:			\begin{itemize}
+		\item Activities:
+			\begin{itemize}
 			\item Update intentions
 		 	 \item Move
 			 \item Die
-			\end{itemize}		\item Responsibilities:
-			\begin{itemize}			\item Liveness: 		 	       Bodyguards = \\
-			(Update beliefs $\cdot$ Update intentions $| $[Change Role] $|$ [Move]  $|$ [Patrol] $|$ [Defend] )$^\omega | Die$			\item Safety: \\		  	   - PlayerPosition must be unique and other player cannot be in the same PlayerPosition.\\   			 - MyPosition can change only 1 step in any direction\\
-			- Attack only one enemy at a time at patch ahead\\    			- No valid moves for this player after death.\\
-			\item Permissions:\\			\textbf{Reads}    \\
-			   PlayerPosition         // gets x,y of desired player \\ 		               PlayerLifeLevel        // gets life level of desired player\\			\\			\textbf{Changes }  \\
-			        MyPosition(x,y)       // Position of the agent in the map\\        				            MyLife                    // Updates current life level\\          			          OpponentFlagStatus                   // Update if captain has flag or not			\end{itemize}
+			\end{itemize}
+		\item Responsibilities:
+			\begin{itemize}
+			\item Liveness: 
+		 	       Bodyguards = \\
+			(Update beliefs $\cdot$ Update intentions $\cdot$ ( [Change Role] $|$ [Move]  $|$ [Patrol] $|$ [Defend]) )$^\omega | Die$
+			\item Safety: \\
+		  	   - PlayerPosition must be unique and other player cannot be in the same PlayerPosition.\\
+   			 - MyPosition can change only 1 step in any direction\\
+			- Attack only one enemy at a time at patch ahead\\
+    			- No valid moves for this player after death.\\
+			\item Permissions:\\
+			\textbf{Reads}    \\
+			   PlayerPosition         // gets x,y of desired player \\
+ 		               PlayerLifeLevel        // gets life level of desired player\\
+			\\
+			\textbf{Changes }  \\
+			        MyPosition(x,y)       // Position of the agent in the map\\
+        				            MyLife                    // Updates current life level\\
+          			          OpponentFlagStatus                   // Update if captain has flag or not
+
+			\end{itemize}
 		\end{itemize}	
 
 \item
 
     \textbf{Name:} Freeagent
 	  \begin{itemize}
- 		 \item Description: Initial role for non-flag agents		  \item Protocols:
+ 		 \item Description: Initial role for non-flag agents
+		  \item Protocols:
 			\begin{itemize}
 			\item Bid
 			\item Change role
 			\end{itemize}
-		\item Activities:			\begin{itemize}
+		\item Activities:
+			\begin{itemize}
 			\item Get in random position
-			\end{itemize}		\item Responsibilities:
-			\begin{itemize}			\item Liveness: 		 	       Freeagent = \\
-			(Get in random position+ $\cdot$ Bid+ $\cdot$ Change role)			\item Safety: \\		  	   - Starting position is random, but will respect only one agent per patch and each team can only sprout in their side of the field
-			\item Permissions:\\			\textbf{Reads}    \\
-			   Task //Task offered by flag			\\			\textbf{Changes }  \\
-			        MyOffer(x,y)       // offer for bid\\			\end{itemize}
+			\end{itemize}
+		\item Responsibilities:
+			\begin{itemize}
+			\item Liveness: 
+		 	       Freeagent = \\
+			(Get in random position+ $\cdot$ Bid+ $\cdot$ Change role)
+			\item Safety: \\
+		  	   - Starting position is random, but will respect only one agent per patch and each team can only sprout in their side of the field
+			\item Permissions:\\
+			\textbf{Reads}    \\
+			   Task //Task offered by flag
+			\\
+			\textbf{Changes }  \\
+			        MyOffer(x,y)       // offer for bid\\
+			\end{itemize}
 		\end{itemize}	
 		
 \end{itemize}
@@ -680,57 +776,112 @@ Contract-net was selected as the multi-agent coordination technique. This allows
 \begin{itemize}
 \item   Protocol: Attack
 	   \begin{itemize}
-	\item Purpose: damage a player	\item Initiator: Attacker	\item Responder: Victim 	\item Inputs: Position (x,y) of the victim	\item Outputs: Victim's new reduced life level	\item Processing: Victim life level - attack
+	\item Purpose: damage a player
+	\item Initiator: Attacker
+	\item Responder: Victim 
+	\item Inputs: Position (x,y) of the victim
+	\item Outputs: Victim's new reduced life level
+	\item Processing: Victim life level - attack
 	\end{itemize}
 	
 \item   Protocol: CaptureFlag
 	   \begin{itemize}
-	\item Purpose: Capture flag	\item Initiator: Captain	\item Responder: Opponent's Flag	\item Inputs: Position (x,y) of the captain	\item Outputs: Flag status changed 	\item Processing: Check that the captains position is the same as the opponent's flag position
+	\item Purpose: Capture flag
+	\item Initiator: Captain
+	\item Responder: Opponent's Flag
+	\item Inputs: Position (x,y) of the captain
+	\item Outputs: Flag status changed 
+	\item Processing: Check that the captains position is the same as the opponent's flag position
 	\end{itemize}
 	
 \item   Protocol: Bid
 	   \begin{itemize}
-	\item Purpose: Make offer for a task	\item Initiator: Flag	\item Responder: Freeagent	\item Inputs: task	\item Outputs: offer 	\item Processing: Make offer according to task requirements
+	\item Purpose: Make offer for a task
+	\item Initiator: Flag
+	\item Responder: Freeagent
+	\item Inputs: task
+	\item Outputs: offer 
+	\item Processing: Make offer according to task requirements
 	\end{itemize}
 	
 \item   Protocol: Change role
 	   \begin{itemize}
-	\item Purpose: Change to another role (captain, bodyguard or flagdefender)	\item Initiator: Flag	\item Responder: Any agent	\item Inputs: role	\item Outputs: Agent changes role 	\item Processing: Flag requirements for roles and  if captain dies, a new one needs to be selected
+	\item Purpose: Change to another role (captain, bodyguard or flagdefender)
+	\item Initiator: Flag
+	\item Responder: Any agent
+	\item Inputs: role
+	\item Outputs: Agent changes role 
+	\item Processing: Flag requirements for roles and  if captain dies, a new one needs to be selected
 	\end{itemize}
 
 \item   Protocol: Update beliefs
 	   \begin{itemize}
-	\item Purpose: Updates how agent sees the world	\item Initiator: Each agent	\item Responder: Any agent involved in perception	\item Inputs: Percept	\item Outputs: belief updated	\item Processing: Updates belifs according to percepts
+	\item Purpose: Updates how agent sees the world
+	\item Initiator: Each agent
+	\item Responder: Any agent involved in perception
+	\item Inputs: Percept
+	\item Outputs: belief updated
+	\item Processing: Updates belifs according to percepts
 	\end{itemize}
 	
 \item   Protocol: Patrol
 	   \begin{itemize}
-	\item Purpose: Patrol around captain or flag	\item Initiator:  Flags or captains	\item Responder: Flagdefenders or Bodyguards	\item Inputs: Flag or captain position	\item Outputs: Valid patches to move to	\item Processing: Radius to flag or captain
+	\item Purpose: Patrol around captain or flag
+	\item Initiator:  Flags or captains
+	\item Responder: Flagdefenders or Bodyguards
+	\item Inputs: Flag or captain position
+	\item Outputs: Valid patches to move to
+	\item Processing: Radius to flag or captain
 	\end{itemize}
 	
 \item   Protocol: Defend
 	   \begin{itemize}
-	\item Purpose: Defends captain or flag	\item Initiator:  Flags or captains	\item Responder: Flagdefenders or Bodyguards	\item Inputs: Flag or captain enemies near	\item Outputs: list of enemies near flag or captain	\item Processing: Enemies in a Radius to flag or captain
+	\item Purpose: Defends captain or flag
+	\item Initiator:  Flags or captains
+	\item Responder: Flagdefenders or Bodyguards
+	\item Inputs: Flag or captain enemies near
+	\item Outputs: list of enemies near flag or captain
+	\item Processing: Enemies in a Radius to flag or captain
 	\end{itemize}
 
 \item   Protocol: Broadcast task
 	   \begin{itemize}
-	\item Purpose: Offer a task 	\item Initiator:  Flags	\item Responder: Freeagents or Flagdefenders or Bodyguards	\item Inputs: task	\item Outputs: list of offers	\item Processing: Generate list according to bidders
+	\item Purpose: Offer a task 
+	\item Initiator:  Flags
+	\item Responder: Freeagents or Flagdefenders or Bodyguards
+	\item Inputs: task
+	\item Outputs: list of offers
+	\item Processing: Generate list according to bidders
 	\end{itemize}
 	
 \item   Protocol: Assign captain
 	   \begin{itemize}
-	\item Purpose: Assign captain	\item Initiator:  Flags	\item Responder: Freeagents or Flagdefenders or Bodyguards	\item Inputs: No captain	\item Outputs: new captain	\item Processing: Calculate best agent for task
+	\item Purpose: Assign captain
+	\item Initiator:  Flags
+	\item Responder: Freeagents or Flagdefenders or Bodyguards
+	\item Inputs: No captain
+	\item Outputs: new captain
+	\item Processing: Calculate best agent for task
 	\end{itemize}
 	
 \item   Protocol: Assign defenders
 	   \begin{itemize}
-	\item Purpose: Assign defenders	\item Initiator:  Flags	\item Responder: Freeagents	\item Inputs: No defenders	\item Outputs: new defenders	\item Processing: Calculate best agents for task
+	\item Purpose: Assign defenders
+	\item Initiator:  Flags
+	\item Responder: Freeagents
+	\item Inputs: No defenders
+	\item Outputs: new defenders
+	\item Processing: Calculate best agents for task
 	\end{itemize}
 	
 \item   Protocol: Assign bodyguards
 	   \begin{itemize}
-	\item Purpose: Assign bodyguards	\item Initiator:  Flags	\item Responder: Freeagents	\item Inputs: No bodyguards	\item Outputs: new bodyguards	\item Processing: Calculate best agents for task
+	\item Purpose: Assign bodyguards
+	\item Initiator:  Flags
+	\item Responder: Freeagents
+	\item Inputs: No bodyguards
+	\item Outputs: new bodyguards
+	\item Processing: Calculate best agents for task
 	\end{itemize}
 	
 \end{itemize}
@@ -745,20 +896,25 @@ Contract-net was selected as the multi-agent coordination technique. This allows
 	  \item Description: Change player's current position
 	\end{itemize}
  \item Activity: Die
-  	   \begin{itemize} 	 \item Description: Remove player when life level reaches zero.
+  	   \begin{itemize}
+ 	 \item Description: Remove player when life level reaches zero.
 	\end{itemize}
 \item Activity: Win
   	   \begin{itemize}
- 	  	 \item Description: End game with positive results
+ 	 
+ 	 \item Description: End game with positive results
 	\end{itemize}
 \item Activity: Lose 
-  	   \begin{itemize}	  \item Description: End game with negative results
+  	   \begin{itemize}
+	  \item Description: End game with negative results
 	\end{itemize}
 \item Activity: Get in random position 
-  	   \begin{itemize}	  \item Description: End game with negative results
+  	   \begin{itemize}
+	  \item Description: End game with negative results
 	\end{itemize}
 \item Activity: Update intentions
-  	   \begin{itemize}	  \item Description: Update internal intentions according to beliefs
+  	   \begin{itemize}
+	  \item Description: Update internal intentions according to beliefs
 	\end{itemize}	
 \end{itemize}
   
@@ -766,7 +922,10 @@ Contract-net was selected as the multi-agent coordination technique. This allows
    \item Agent Model
    
     \begin{itemize}
-    \item Captain: 1 per team  \item Flag: 1 per team  \item Flag defender: +  \item Bodyguards: +
+    \item Captain: 1 per team
+  \item Flag: 1 per team
+  \item Flag defender: +
+  \item Bodyguards: +
 \end{itemize}
 
   \item Acquintance Model
@@ -1117,6 +1276,14 @@ This simulation can be upgraded by adding attack coordination and will surely re
 Ilias Sakellariou. \emph{Agents with Beliefs and Intentions in Netlogo}. March 2004, Updated March 2008
 \bibitem{bib2}
 Symbolic, intentional and deliberative agents PDF presentation in Multi-agent systems course
+\bibitem{bib3}
+Carmen Fernández Chamizo, Jorge Gómez Sanz, Juan Pavón Mestras. \emph{Metodologías de desarrollo de sistemas multi-agente}. http://grasia.fdi.ucm.es
+\bibitem{bib4}
+Michael Wooldridge. \emph{The Gaia Methodology for Agent-Oriented Analysis and Design}
+\bibitem{bib5}
+Agent Methodologies.Agent-based systems course. With material from:Adina Magda Florea
+\bibitem{bib6}
+NetLogo. http://ccl.northwestern.edu/netlogo/
 
 \end{thebibliography}
 
